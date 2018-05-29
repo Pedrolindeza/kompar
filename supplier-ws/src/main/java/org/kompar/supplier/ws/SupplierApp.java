@@ -1,6 +1,6 @@
 package org.kompar.supplier.ws;
 
-import org.komparator.security.SecuritySingleton;
+import org.kompar.security.SecuritySingleton;
 
 /** Main class that starts the Supplier Web Service. */
 public class SupplierApp {

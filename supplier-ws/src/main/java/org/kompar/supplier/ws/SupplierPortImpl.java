@@ -7,13 +7,13 @@ import java.util.Set;
 import javax.jws.HandlerChain;
 import javax.jws.WebService;
 
-import org.komparator.supplier.domain.Product;
-import org.komparator.supplier.domain.Purchase;
-import org.komparator.supplier.domain.QuantityException;
-import org.komparator.supplier.domain.Supplier;
+import org.kompar.supplier.domain.Product;
+import org.kompar.supplier.domain.Purchase;
+import org.kompar.supplier.domain.QuantityException;
+import org.kompar.supplier.domain.Supplier;
 
 @HandlerChain(file = "/SupplierService_handler.xml")
-@WebService(endpointInterface = "org.komparator.supplier.ws.SupplierPortType", wsdlLocation = "supplier.1_0.wsdl", name = "SupplierWebService", portName = "SupplierPort", targetNamespace = "http://ws.supplier.komparator.org/", serviceName = "SupplierService")
+@WebService(endpointInterface = "org.kompar.supplier.ws.SupplierPortType", wsdlLocation = "supplier.1_0.wsdl", name = "SupplierWebService", portName = "SupplierPort", targetNamespace = "http://ws.supplier.kompar.org/", serviceName = "SupplierService")
 public class SupplierPortImpl implements SupplierPortType {
 
 	// end point manager
