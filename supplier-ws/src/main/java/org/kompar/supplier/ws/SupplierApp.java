@@ -1,6 +1,6 @@
 package org.kompar.supplier.ws;
 
-import org.kompar.security.SecuritySingleton;
+//import org.kompar.security.SecuritySingleton;
 
 /** Main class that starts the Supplier Web Service. */
 public class SupplierApp {
@@ -21,8 +21,8 @@ public class SupplierApp {
 			String UDDIURL = args[0];
 			String wsName = args[1];
 			String wsURL = args[2];
-			SecuritySingleton sec = SecuritySingleton.getInstance();
-			sec.setName(wsName);
+	//		SecuritySingleton sec = SecuritySingleton.getInstance();
+	//		sec.setName(wsName);
 			endpoint = new SupplierEndpointManager(wsURL,UDDIURL,wsName);
 		}
 		// Create server implementation object
