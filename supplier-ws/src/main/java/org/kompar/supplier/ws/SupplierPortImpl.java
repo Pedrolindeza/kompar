@@ -12,7 +12,6 @@ import org.kompar.supplier.domain.Purchase;
 import org.kompar.supplier.domain.QuantityException;
 import org.kompar.supplier.domain.Supplier;
 
-@HandlerChain(file = "/SupplierService_handler.xml")
 @WebService(endpointInterface = "org.kompar.supplier.ws.SupplierPortType", wsdlLocation = "supplier.1_0.wsdl", name = "SupplierWebService", portName = "SupplierPort", targetNamespace = "http://ws.supplier.kompar.org/", serviceName = "SupplierService")
 public class SupplierPortImpl implements SupplierPortType {
 
