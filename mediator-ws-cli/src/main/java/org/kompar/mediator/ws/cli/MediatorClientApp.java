@@ -1,5 +1,6 @@
 package org.kompar.mediator.ws.cli;
 
+import org.kompar.mediator.ws.ShoppingResultView;
 
 public class MediatorClientApp {
 
@@ -37,6 +38,7 @@ public class MediatorClientApp {
         // the actual tests are made using JUnit
 
         System.out.println("Invoke ping()...");
+        
         String result = client.ping("client");
         System.out.println(result);
 
