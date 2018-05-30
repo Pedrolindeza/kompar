@@ -3,12 +3,6 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- http://maven.apache.org/pom.html#Quick_Overview -->
 
-	<parent>
-    	<groupId>org.kompar</groupId>
-    	<artifactId>kompar</artifactId>
-    	<version>1.0-SNAPSHOT</version>
-  	</parent>
-
     <groupId>org.kompar</groupId>
     <artifactId>supplier-ws-cli</artifactId>
     <version>1.0-SNAPSHOT</version>
