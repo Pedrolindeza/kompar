@@ -1,4 +1,4 @@
-package org.komparator.mediator.ws;
+package org.kompar.mediator.ws;
 
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
@@ -17,21 +17,21 @@ import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 
-import org.komparator.mediator.domain.Cart;
-import org.komparator.mediator.domain.Mediator;
-import org.komparator.mediator.ws.cli.MediatorClient;
-import org.komparator.mediator.ws.cli.MediatorClientException;
-import org.komparator.security.SecuritySingleton;
-import org.komparator.security.handler.MessageIdHandler;
-//import org.komparator.supplier.domain.Supplier;
-//import org.komparator.supplier.ws.ProductView;
-import org.komparator.supplier.ws.BadProductId_Exception;
-import org.komparator.supplier.ws.BadQuantity_Exception;
-import org.komparator.supplier.ws.BadText_Exception;
-import org.komparator.supplier.ws.InsufficientQuantity_Exception;
-import org.komparator.supplier.ws.ProductView;
-import org.komparator.supplier.ws.cli.SupplierClient;
-import org.komparator.supplier.ws.cli.SupplierClientException;
+import org.kompar.mediator.domain.Cart;
+import org.kompar.mediator.domain.Mediator;
+import org.kompar.mediator.ws.cli.MediatorClient;
+import org.kompar.mediator.ws.cli.MediatorClientException;
+//import org.kompar.security.SecuritySingleton;
+//import org.kompar.security.handler.MessageIdHandler;
+//import org.kompar.supplier.domain.Supplier;
+//import org.kompar.supplier.ws.ProductView;
+import org.kompar.supplier.ws.BadProductId_Exception;
+import org.kompar.supplier.ws.BadQuantity_Exception;
+import org.kompar.supplier.ws.BadText_Exception;
+import org.kompar.supplier.ws.InsufficientQuantity_Exception;
+import org.kompar.supplier.ws.ProductView;
+import org.kompar.supplier.ws.cli.SupplierClient;
+import org.kompar.supplier.ws.cli.SupplierClientException;
 
 import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClientException;
@@ -41,12 +41,12 @@ import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
 // TODO annotate to bind with WSDL
 // TODO implement port type interface
 @HandlerChain(file = "/MediatorService_handler.xml")
-@WebService(endpointInterface = "org.komparator.mediator.ws.MediatorPortType", wsdlLocation = "mediator.wsdl", name = "Mediator", portName = "MediatorPort", targetNamespace = "http://ws.mediator.komparator.org/", serviceName = "MediatorService")
+@WebService(endpointInterface = "org.kompar.mediator.ws.MediatorPortType", wsdlLocation = "mediator.wsdl", name = "Mediator", portName = "MediatorPort", targetNamespace = "http://ws.mediator.kompar.org/", serviceName = "MediatorService")
 
 public class MediatorPortImpl implements MediatorPortType {
 
 	String secURL = "http://localhost:8072/mediator-ws/endpoint";
-	private static final String A45_SUPPLIER = "A45_Supplier";
+	private static final String A45_SUPPLIER = "";// was A45_Supplier
 
 	private Date date;
 
@@ -267,7 +267,7 @@ public class MediatorPortImpl implements MediatorPortType {
 
 				cartItemView.setQuantity(cartItemView.getQuantity() + itemQty);
 
-				if (SecuritySingleton.getInstance().getWsI() == 1) {
+				//if (SecuritySingleton.getInstance().getWsI() == 1) {
 					CartItemView civ = new CartItemView();
 					civ.setQuantity(cartItemView.getQuantity());
 
@@ -300,7 +300,7 @@ public class MediatorPortImpl implements MediatorPortType {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				}
+				//}
 
 				return;
 
@@ -338,7 +338,7 @@ public class MediatorPortImpl implements MediatorPortType {
 			// Add new cartItemView to the mediator
 			mediator.getCart(cartId).addItem(civ);
 
-			if (SecuritySingleton.getInstance().getWsI() == 1) {
+			//if (SecuritySingleton.getInstance().getWsI() == 1) {
 				CartView result = new CartView();
 				result.getItems().add(civ);
 				result.setCartId(cartId);
@@ -352,7 +352,7 @@ public class MediatorPortImpl implements MediatorPortType {
 					e.printStackTrace();
 				}
 
-			}
+			//}
 
 		}
 
@@ -455,7 +455,7 @@ public class MediatorPortImpl implements MediatorPortType {
 		srv.setId(mediator.generatePurchaseId(cartId));
 		mediator.addPurchase(srv);
 
-		if (SecuritySingleton.getInstance().getWsI() == 1) {
+		//if (SecuritySingleton.getInstance().getWsI() == 1) {
 
 			try {
 				MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
@@ -465,7 +465,7 @@ public class MediatorPortImpl implements MediatorPortType {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
-		}
+		//}
 		return srv;
 
 	}
@@ -473,14 +473,14 @@ public class MediatorPortImpl implements MediatorPortType {
 	@Override
 	@Oneway
 	public void imAlive() {
-		System.out.println("Checking if alive");
-		int primary = SecuritySingleton.getInstance().getWsI();
-		Date date = new Date();
-		if (primary == 1) {
+//		System.out.println("Checking if alive");
+//		int primary = SecuritySingleton.getInstance().getWsI();
+//		Date date = new Date();
+//		if (primary == 1) {
 			return;
-		} else {
-			SecuritySingleton.getInstance().setDate(date);
-		}
+//		} else {
+//			SecuritySingleton.getInstance().setDate(date);
+//		}
 	}
 
 	@Override
@@ -555,7 +555,7 @@ public class MediatorPortImpl implements MediatorPortType {
 
 	@Override
 	public void clear() { // TODO confirm
-		if (SecuritySingleton.getInstance().getWsI() == 1) {
+		//if (SecuritySingleton.getInstance().getWsI() == 1) {
 			for (UDDIRecord record : getAvaliableSupplierClients()) {
 				try {
 					// percorro a lista, crio clientes para os eliminar
@@ -573,7 +573,7 @@ public class MediatorPortImpl implements MediatorPortType {
 			Map<String, Object> requestContext = bindingProvider.getRequestContext();
 			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, secURL);
 			ligacao.clear();
-		}
+		//}
 
 		mediator = new Mediator();
 	}

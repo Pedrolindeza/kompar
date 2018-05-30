@@ -1,4 +1,4 @@
-package org.komparator.mediator.domain;
+package org.kompar.mediator.domain;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -6,7 +6,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.komparator.mediator.ws.ShoppingResultView;
+import org.kompar.mediator.ws.ShoppingResultView;
 
 public class Mediator {
 	private Map<String, Cart> listcart;

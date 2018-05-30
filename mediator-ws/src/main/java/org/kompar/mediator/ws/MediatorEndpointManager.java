@@ -1,4 +1,4 @@
-package org.komparator.mediator.ws;
+package org.kompar.mediator.ws;
 
 import java.io.IOException;
 

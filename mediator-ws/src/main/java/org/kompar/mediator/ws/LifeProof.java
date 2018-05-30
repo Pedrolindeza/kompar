@@ -1,10 +1,10 @@
-package org.komparator.mediator.ws;
+package org.kompar.mediator.ws;
 
 import java.util.Date;
 
-import org.komparator.mediator.ws.cli.MediatorClient;
-import org.komparator.mediator.ws.cli.MediatorClientException;
-import org.komparator.security.SecuritySingleton;
+import org.kompar.mediator.ws.cli.MediatorClient;
+import org.kompar.mediator.ws.cli.MediatorClientException;
+//import org.kompar.security.SecuritySingleton;
 
 public class LifeProof extends Thread {
 
@@ -20,7 +20,7 @@ public class LifeProof extends Thread {
 	@Override
 	public void run() {
 
-		if (SecuritySingleton.getInstance().getWsI() == 1) {
+		//if (SecuritySingleton.getInstance().getWsI() == 1) {
 
 			// MediatorClient ligacao = new MediatorClient (secURL);
 
@@ -41,25 +41,25 @@ public class LifeProof extends Thread {
 
 			// Cria um cliente de mediador que aponta para o mediador secundário
 
-		} else if (SecuritySingleton.getInstance().getWsI() == 2) {
-			while (SecuritySingleton.getInstance().getDate() == null) {
-				nap(1);
-			}
-			while (((new Date().getTime() - SecuritySingleton.getInstance().getDate().getTime()) / 1000) < TEMPO + 1) {
-				nap(TEMPO);
-			}
-			try {
-				endpoint.publishToUDDI();
-				endpoint.awaitConnections();
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		}
+		//} else if (SecuritySingleton.getInstance().getWsI() == 2) {
+//			while (SecuritySingleton.getInstance().getDate() == null) {
+//				nap(1);
+//			}
+//			while (((new Date().getTime() - SecuritySingleton.getInstance().getDate().getTime()) / 1000) < TEMPO + 1) {
+//				nap(TEMPO);
+//			}
+//			try {
+//				endpoint.publishToUDDI();
+//				endpoint.awaitConnections();
+//			} catch (Exception e) {
+//				// TODO Auto-generated catch block
+//				e.printStackTrace();
+//			}
+//		}
 
-		else {
-			System.out.println("Erro no life proof, mediator nao reconhecido");
-		}
+//		else {
+//			System.out.println("Erro no life proof, mediator nao reconhecido");
+//		}
 
 	}
 

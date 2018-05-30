@@ -1,4 +1,4 @@
-package org.komparator.mediator.domain;
+package org.kompar.mediator.domain;
 
 public class ItemID {
 	 	private String productId;

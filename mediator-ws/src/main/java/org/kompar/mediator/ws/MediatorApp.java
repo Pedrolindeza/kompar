@@ -1,6 +1,6 @@
-package org.komparator.mediator.ws;
+package org.kompar.mediator.ws;
 
-import org.komparator.security.SecuritySingleton;
+import org.kompar.security.SecuritySingleton;
 
 public class MediatorApp {
 
@@ -31,9 +31,9 @@ public class MediatorApp {
 			wsName = args[1];
 			wsURL = args[2];
 			wsI = args[3];
-			SecuritySingleton sec = SecuritySingleton.getInstance();
-			sec.setName(wsName);
-			sec.setWsI(Integer.parseInt(wsI));
+			//SecuritySingleton sec = SecuritySingleton.getInstance();
+			//sec.setName(wsName);
+			//sec.setWsI(Integer.parseInt(wsI));
 			endpoint = new MediatorEndpointManager(uddiURL, wsName, wsURL, wsI);
 			endpoint.setVerbose(true);
 		}

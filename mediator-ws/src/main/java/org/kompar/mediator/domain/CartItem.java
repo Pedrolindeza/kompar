@@ -1,6 +1,6 @@
-package org.komparator.mediator.domain;
+package org.kompar.mediator.domain;
 
-import org.komparator.mediator.ws.ItemView;
+import org.kompar.mediator.ws.ItemView;
 
 public class CartItem {
 	   private ItemView item;
