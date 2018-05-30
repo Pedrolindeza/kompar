@@ -1,6 +1,6 @@
 package org.kompar.mediator.ws;
 
-import org.kompar.security.SecuritySingleton;
+//import org.kompar.security.SecuritySingleton;
 
 public class MediatorApp {
 

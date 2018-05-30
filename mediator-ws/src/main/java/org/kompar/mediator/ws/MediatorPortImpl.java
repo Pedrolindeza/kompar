@@ -21,8 +21,6 @@ import org.kompar.mediator.domain.Cart;
 import org.kompar.mediator.domain.Mediator;
 import org.kompar.mediator.ws.cli.MediatorClient;
 import org.kompar.mediator.ws.cli.MediatorClientException;
-//import org.kompar.security.SecuritySingleton;
-//import org.kompar.security.handler.MessageIdHandler;
 //import org.kompar.supplier.domain.Supplier;
 //import org.kompar.supplier.ws.ProductView;
 import org.kompar.supplier.ws.BadProductId_Exception;
@@ -33,20 +31,18 @@ import org.kompar.supplier.ws.ProductView;
 import org.kompar.supplier.ws.cli.SupplierClient;
 import org.kompar.supplier.ws.cli.SupplierClientException;
 
-import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClient;
-import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClientException;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINamingException;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
 
 // TODO annotate to bind with WSDL
 // TODO implement port type interface
-@HandlerChain(file = "/MediatorService_handler.xml")
-@WebService(endpointInterface = "org.kompar.mediator.ws.MediatorPortType", wsdlLocation = "mediator.wsdl", name = "Mediator", portName = "MediatorPort", targetNamespace = "http://ws.mediator.kompar.org/", serviceName = "MediatorService")
+
+@WebService(endpointInterface = "org.kompar.mediator.ws.MediatorPortType", wsdlLocation = "mediator1_0.wsdl", name = "Mediator", portName = "MediatorPort", targetNamespace = "http://ws.mediator.kompar.org/", serviceName = "MediatorService")
 
 public class MediatorPortImpl implements MediatorPortType {
 
 	String secURL = "http://localhost:8072/mediator-ws/endpoint";
-	private static final String A45_SUPPLIER = "";// was A45_Supplier
+	private static final String SUPPLIER = "Supplier";
 
 	private Date date;
 
@@ -222,13 +218,9 @@ public class MediatorPortImpl implements MediatorPortType {
 
 		// *** #6 ***
 		// get token from message context
-		String propertyValue = (String) messageContext.get(MessageIdHandler.REQUEST_PROPERTY);
-		System.out.printf("%s got token '%s' from response context%n", CLASS_NAME, propertyValue);
+		
+		System.out.printf("%s got token '%s' from response context%n", CLASS_NAME);
 
-		Object obj = ids.get(propertyValue);
-		if (obj != null) {
-			return;
-		}
 		if (!acceptCart(cartId)) {
 			throwInvalidCartId("Invalid cart id");
 		}
@@ -267,7 +259,7 @@ public class MediatorPortImpl implements MediatorPortType {
 
 				cartItemView.setQuantity(cartItemView.getQuantity() + itemQty);
 
-				//if (SecuritySingleton.getInstance().getWsI() == 1) {
+				/*if (SecuritySingleton.getInstance().getWsI() == 1) {
 					CartItemView civ = new CartItemView();
 					civ.setQuantity(cartItemView.getQuantity());
 
@@ -300,7 +292,7 @@ public class MediatorPortImpl implements MediatorPortType {
 						// TODO Auto-generated catch block
 						e.printStackTrace();
 					}
-				//}
+				}*/
 
 				return;
 
@@ -338,21 +330,20 @@ public class MediatorPortImpl implements MediatorPortType {
 			// Add new cartItemView to the mediator
 			mediator.getCart(cartId).addItem(civ);
 
-			//if (SecuritySingleton.getInstance().getWsI() == 1) {
+			/*if (SecuritySingleton.getInstance().getWsI() == 1) {
 				CartView result = new CartView();
 				result.getItems().add(civ);
 				result.setCartId(cartId);
 
 				try {
 					MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
-					ligacao.updateCart(result, 0);
-					ids.put(propertyValue, cartId);
+					ligacao.updateCart(result);
 				} catch (MediatorClientException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 
-			//}
+			}*/
 
 		}
 
@@ -369,103 +360,9 @@ public class MediatorPortImpl implements MediatorPortType {
 	public ShoppingResultView buyCart(String cartId, String creditCardNr)
 			throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
 
-		MessageContext messageContext = webServiceContext.getMessageContext();
-
-		String propertyValue = (String) messageContext.get(MessageIdHandler.REQUEST_PROPERTY);
-		System.out.printf("%s got token '%s' from response context%n", CLASS_NAME, propertyValue);
-
-		Object obj = ids.get(propertyValue);
-		if (obj != null) {
-			return (ShoppingResultView) obj;
-		}
-
-		if (!acceptCart(cartId)) {
-			throwInvalidCartId("null");
-		}
-
-		if (!acceptCardId(creditCardNr)) {
-			throwInvalidCreditCard("Invalid credit card id");
-		}
-
-		boolean purchaseFinalized = false;
-		boolean uncomplete = false;
-
 		ShoppingResultView srv = new ShoppingResultView();
 
-		// None pretended item was purchased so far
-		srv.setResult(Result.EMPTY);
-		try {
-			Cart cart = mediator.getCart(cartId);
-			if (cart == null) {
-				throwInvalidCartId("Invalid cart id");
-
-			}
-			CreditCardClient ccc = new CreditCardClient("http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc");
-			if (ccc.validateNumber(creditCardNr)) {
-
-				// If the credit card is valid, proced to purchase
-				for (CartItemView cartItemView : cart.getCartItemViewList()) {
-					try {
-						SupplierClient client = new SupplierClient(
-								endpointManager.getUddiNaming().lookup(getSupplierIdFromCartItemView(cartItemView)));
-						client.buyProduct(cartItemView.getItem().getItemId().getProductId(),
-								cartItemView.getQuantity());
-						srv.getPurchasedItems().add(cartItemView);
-						int cost = cartItemView.getQuantity() * cartItemView.getItem().getPrice();
-						srv.setTotalPrice(srv.getTotalPrice() + cost);
-
-						purchaseFinalized = true;
-
-					} catch (SupplierClientException e) {
-						srv.getDroppedItems().add(cartItemView);
-						uncomplete = true;
-					} catch (UDDINamingException u) {
-						srv.getDroppedItems().add(cartItemView);
-						uncomplete = true;
-					} catch (BadProductId_Exception e) {
-						srv.getDroppedItems().add(cartItemView);
-						uncomplete = true;
-
-					} catch (BadQuantity_Exception e) {
-						srv.getDroppedItems().add(cartItemView);
-						uncomplete = true;
-
-					} catch (InsufficientQuantity_Exception e) {
-						srv.getDroppedItems().add(cartItemView);
-						uncomplete = true;
-
-					}
-
-				}
-			} else {
-				throwInvalidCreditCard("Invalid credit card");
-			}
-		} catch (CreditCardClientException e) {
-			throwInvalidCreditCard("Invalid CC");
-		}
-
-		// The purchase was taken to its end
-		if (purchaseFinalized) {
-			if (uncomplete) {
-				srv.setResult(Result.PARTIAL);
-			} else {
-				srv.setResult(Result.COMPLETE);
-			}
-		}
-		srv.setId(mediator.generatePurchaseId(cartId));
-		mediator.addPurchase(srv);
-
-		//if (SecuritySingleton.getInstance().getWsI() == 1) {
-
-			try {
-				MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
-				ligacao.updateShopHistory(srv);
-				ids.put(propertyValue, srv);
-			} catch (MediatorClientException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		//}
+		
 		return srv;
 
 	}
@@ -489,8 +386,7 @@ public class MediatorPortImpl implements MediatorPortType {
 		mediator.addPurchase(result);
 	}
 
-	@Override
-	@Oneway
+	/*@Override
 	public void updateCart(CartView result, int opcao) {
 
 		if (opcao == 0) {
@@ -514,7 +410,7 @@ public class MediatorPortImpl implements MediatorPortType {
 
 		}
 
-	}
+	}*/f
 	// Auxiliary operations --------------------------------------------------
 
 	public List<UDDIRecord> getAvaliableSupplierClients() {
@@ -522,7 +418,7 @@ public class MediatorPortImpl implements MediatorPortType {
 
 		try {
 			// UDDIRecord tem o url e o nome
-			supplierClients = (List<UDDIRecord>) endpointManager.getUddiNaming().listRecords(A45_SUPPLIER + "%");
+			supplierClients = (List<UDDIRecord>) endpointManager.getUddiNaming().listRecords(SUPPLIER + "%");
 		} catch (UDDINamingException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
