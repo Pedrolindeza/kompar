@@ -1,50 +1,58 @@
-package org.kompar.mediator.ws;
+package org.komparator.mediator.ws;
 
-import java.text.SimpleDateFormat;
+import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
+
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
-import java.util.LinkedList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.ListIterator;
+import java.util.Map;
 
 import javax.annotation.Resource;
 import javax.jws.HandlerChain;
+import javax.jws.Oneway;
 import javax.jws.WebService;
+import javax.xml.ws.BindingProvider;
 import javax.xml.ws.WebServiceContext;
 import javax.xml.ws.handler.MessageContext;
 
-import org.kompar.supplier.ws.BadProductId_Exception;
-import org.kompar.supplier.ws.BadProduct_Exception;
-import org.kompar.supplier.ws.BadQuantity_Exception;
-import org.kompar.supplier.ws.BadText_Exception;
-import org.kompar.supplier.ws.InsufficientQuantity_Exception;
-import org.kompar.supplier.ws.ProductView;
-import org.kompar.supplier.ws.cli.SupplierClient;
-import org.kompar.supplier.ws.cli.SupplierClientException;
-import org.kompar.mediator.ws.cli.MediatorClient;
-import org.kompar.mediator.ws.cli.MediatorClientException;
-import org.kompar.security.handler.OpIDHandler;
+import org.komparator.mediator.domain.Cart;
+import org.komparator.mediator.domain.Mediator;
+import org.komparator.mediator.ws.cli.MediatorClient;
+import org.komparator.mediator.ws.cli.MediatorClientException;
+import org.komparator.security.SecuritySingleton;
+import org.komparator.security.handler.MessageIdHandler;
+//import org.komparator.supplier.domain.Supplier;
+//import org.komparator.supplier.ws.ProductView;
+import org.komparator.supplier.ws.BadProductId_Exception;
+import org.komparator.supplier.ws.BadQuantity_Exception;
+import org.komparator.supplier.ws.BadText_Exception;
+import org.komparator.supplier.ws.InsufficientQuantity_Exception;
+import org.komparator.supplier.ws.ProductView;
+import org.komparator.supplier.ws.cli.SupplierClient;
+import org.komparator.supplier.ws.cli.SupplierClientException;
 
 import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClient;
 import pt.ulisboa.tecnico.sdis.ws.cli.CreditCardClientException;
-import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINamingException;
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDIRecord;
 
-@SuppressWarnings("unused")
-@WebService(endpointInterface = "org.kompar.mediator.ws.MediatorPortType", wsdlLocation = "mediator1_0.wsdl", name = "MediatorWebService", portName = "MediatorPort", targetNamespace = "http://ws.mediator.kompar.org/", serviceName = "MediatorService")
-@HandlerChain(file = "/mediator-ws_handler-chain.xml")
+// TODO annotate to bind with WSDL
+// TODO implement port type interface
+@HandlerChain(file = "/MediatorService_handler.xml")
+@WebService(endpointInterface = "org.komparator.mediator.ws.MediatorPortType", wsdlLocation = "mediator.wsdl", name = "Mediator", portName = "MediatorPort", targetNamespace = "http://ws.mediator.komparator.org/", serviceName = "MediatorService")
 
 public class MediatorPortImpl implements MediatorPortType {
 
-	@Resource
-	private WebServiceContext webServiceContext;
+	String secURL = "http://localhost:8072/mediator-ws/endpoint";
+	private static final String A45_SUPPLIER = "A45_Supplier";
 
-	Date date;
-	private boolean _isPrim;
+	private Date date;
+
+	private Map<String, Object> ids = new HashMap<String, Object>();
+
+	private Mediator mediator = new Mediator();
 	// end point manager
 	private MediatorEndpointManager endpointManager;
 
@@ -52,137 +60,309 @@ public class MediatorPortImpl implements MediatorPortType {
 		this.endpointManager = endpointManager;
 	}
 
-	private List<CartView> cartsList = new ArrayList<CartView>();
+	public static final String CLASS_NAME = MediatorPortImpl.class.getSimpleName();
+	public static final String TOKEN = "server";
 
-	private List<ShoppingResultView> shoppingResultsList = new ArrayList<ShoppingResultView>();
+	@Resource
+	private WebServiceContext webServiceContext;
 
-	private void resetCartsList() {
-		this.cartsList = new ArrayList<CartView>();
-	}
-
-	private void resetShoppingResultView() {
-		this.shoppingResultsList = new ArrayList<ShoppingResultView>();
-	}
-
-	// getters/setters -------------------------------------------------------
-
-	public void setIsPrim(boolean isPrim) {
-
-		_isPrim = isPrim;
-	}
-
-	private void setCartsList(List<CartView> newCarts) {
-		this.cartsList = newCarts;
-	}
-
-	private void setShoppingResultView(List<ShoppingResultView> newShoppingView) {
-		this.shoppingResultsList = newShoppingView;
-	}
-
-	public boolean getIsPrim() {
-		return _isPrim;
-	}
+	// retrieve message context
 
 	// Main operations -------------------------------------------------------
 
 	@Override
-	public List<ItemView> getItems(String productID) throws InvalidItemId_Exception {
+	public List<ItemView> getItems(String productId) throws InvalidItemId_Exception {
+		String supplierId;
+		String description;
+		int price;
 
-		if (productID == null || productID == "" || productID.contains("\n") || productID.contains("\t")
-				|| productID.trim().length() == 0) {
-			throwInvalidItemId("The productID you specified is invalid.");
+		if (!acceptItemId(productId)) {
+			throwInvalidItemId("Invalid item ID");
 		}
 
-		ItemView itemView = new ItemView();
-		ItemIdView itemIdView = new ItemIdView();
-		List<ItemView> itemViewList = new ArrayList<ItemView>();
-		List<SupplierClient> suppClients = (List<SupplierClient>) getSuppliers();
-
-		for (SupplierClient suppClient : suppClients) {
-
-			try {
-				ProductView productView = suppClient.getProduct(productID);
-				if (productView == null)
-					continue;
-				itemIdView.setProductId(productView.getId());
-				itemIdView.setSupplierId(suppClient.getWsName());
-				itemView.setItemId(itemIdView);
-				itemView.setDesc(productView.getDesc());
-				itemView.setPrice(productView.getPrice());
-				itemViewList.add(itemView);
-			} catch (BadProductId_Exception b) {
-				b.printStackTrace();
-			}
-
-		}
-		Collections.sort(itemViewList, new Comparator<ItemView>() {
-
-			public int compare(ItemView v1, ItemView v2) {
-
-				int p1 = ((ItemView) v1).getPrice();
-				int p2 = ((ItemView) v2).getPrice();
-
-				return Integer.compare(p1, p2);
-			}
-		});
-
-		return itemViewList;
-
-	}
-
-	@Override
-	public List<ItemView> searchItems(String desText) throws InvalidText_Exception {
-
-		if (desText == null || desText == "" || desText.trim().length() == 0) {
-			throwInvalidText("That description is invalid.");
-		}
-
-		ItemIdView itemIdView = new ItemIdView();
-		ItemView itemView = new ItemView();
-		List<SupplierClient> suppClients = (List<SupplierClient>) getSuppliers();
-		List<ProductView> productViewList = new ArrayList<ProductView>();
+		// Reaches active suppliers. Returns supplier clients to each supplier.
 		List<ItemView> itemViewList = new ArrayList<ItemView>();
 
-		for (SupplierClient suppClient : suppClients) {
+		List<UDDIRecord> supplierClients = getAvaliableSupplierClients(); // Can
+		// send
+
+		for (UDDIRecord record : supplierClients) {
+
+			supplierId = getSupplierId(record);
+
+			ItemIdView itemIdView = new ItemIdView();
+			itemIdViewSetAll(itemIdView, productId, supplierId);
 
 			try {
-				productViewList = suppClient.searchProducts(desText);
-				for (ProductView productView : productViewList) {
+				ProductView productView;
+				// tenho de criar um supplier atraves da lista do UDDIRecord
+				SupplierClient s = new SupplierClient(record.getUrl());
+				productView = s.getProduct(productId); // Can send
+				// BadProductId_Exception
+				if (productView != null) {
+					price = productView.getPrice();
+					description = productView.getDesc();
 
-					itemIdView.setProductId(productView.getId());
-					itemIdView.setSupplierId(suppClient.getWsName());
-					itemView.setItemId(itemIdView);
-
-					itemView.setDesc(productView.getDesc());
-					itemView.setPrice(productView.getPrice());
+					ItemView itemView = new ItemView();
+					itemViewSetAll(itemView, itemIdView, description, price);
 					itemViewList.add(itemView);
 				}
 
-			} catch (BadText_Exception b) {
-				b.printStackTrace();
+			} catch (BadProductId_Exception e) {
+				throwInvalidItemId("Invalid item ID");
+			} catch (SupplierClientException e) {
+				e.printStackTrace();
 			}
+
 		}
 
-		Collections.sort(itemViewList, new Comparator<ItemView>() {
-
+		// Ordenar lista de items, por preço
+		itemViewList.sort(new Comparator<ItemView>() {
+			@Override
 			public int compare(ItemView i1, ItemView i2) {
+				int preco1 = i1.getPrice();
+				int preco2 = i2.getPrice();
 
-				String s1 = ((ItemView) i1).getItemId().getProductId();
-				String s2 = ((ItemView) i2).getItemId().getProductId();
-				int sComp = s1.compareTo(s2);
-
-				if (sComp != 0) {
-					return sComp;
-
+				// Menor preco primeiro
+				if (preco1 > preco2) {
+					return 1;
+				} else if (preco1 == preco2) {
+					return 0;
 				} else {
-					int p1 = ((ItemView) i1).getPrice();
-					int p2 = ((ItemView) i2).getPrice();
-					return Integer.compare(p1, p2);
+					return -1;
 				}
 			}
+
 		});
 
 		return itemViewList;
+	}
+
+	@Override
+	public List<ItemView> searchItems(String descText) throws InvalidText_Exception {
+
+		List<ItemView> lista = new ArrayList<ItemView>();
+		List<SupplierClient> supplierClients;
+		List<UDDIRecord> supplierClients1 = getAvaliableSupplierClients();
+
+		String productId;
+		String supplierId;
+		String desc;
+		int price;
+
+		if (!acceptDesc(descText)) {
+			throwInvalidText("Invalid desc for product");
+		}
+
+		for (UDDIRecord record : supplierClients1) {
+			List<ProductView> listaprod = new ArrayList<ProductView>();
+			try {
+				SupplierClient s = new SupplierClient(record.getUrl());
+				listaprod = s.searchProducts(descText);
+			} catch (BadText_Exception e) {
+				throwInvalidText("Invalid desc for product");
+			} catch (SupplierClientException e) {
+				e.printStackTrace();
+			}
+
+			supplierId = record.getOrgName();
+			for (ProductView p : listaprod) {
+
+				// Gets ItemIdView from product id
+				ItemIdView itemIdView = new ItemIdView();
+				productId = p.getId();
+				itemIdViewSetAll(itemIdView, productId, supplierId);
+
+				// Gets ItemView from ItemIdView, desc and price
+				ItemView itemView = new ItemView();
+				desc = p.getDesc();
+				price = p.getPrice();
+				itemViewSetAll(itemView, itemIdView, desc, price);
+
+				lista.add(itemView);
+			}
+		}
+
+		// Sorts the itemView list alphabetically and then for price
+		lista.sort(new Comparator<ItemView>() {
+			@Override
+			public int compare(ItemView i1, ItemView i2) {
+				int preco1 = i1.getPrice();
+				int preco2 = i2.getPrice();
+				String Id1 = i1.getItemId().getProductId();
+				String Id2 = i2.getItemId().getProductId();
+				int ordemId;
+
+				ordemId = Id1.compareTo(Id2);
+				if (ordemId == 0) {
+					if (preco1 > preco2) {
+						return 1;
+					} else if (preco1 == preco2) {
+						return 0;
+					} else {
+						return -1;
+					}
+				} else {
+					return ordemId;
+				}
+			}
+
+		});
+
+		return lista;
+	}
+
+	@Override
+	public void addToCart(String cartId, ItemIdView itemId, int itemQty) throws InvalidCartId_Exception, // TODO
+			// sincronizacao
+			// excecoes
+			InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
+
+		MessageContext messageContext = webServiceContext.getMessageContext();
+
+		// *** #6 ***
+		// get token from message context
+		String propertyValue = (String) messageContext.get(MessageIdHandler.REQUEST_PROPERTY);
+		System.out.printf("%s got token '%s' from response context%n", CLASS_NAME, propertyValue);
+
+		Object obj = ids.get(propertyValue);
+		if (obj != null) {
+			return;
+		}
+		if (!acceptCart(cartId)) {
+			throwInvalidCartId("Invalid cart id");
+		}
+
+		if (!acceptQuantity(itemQty)) {
+			throwInvalidQuantity("Invalid cart id");
+		}
+
+		if (!acceptItemIdView(itemId)) {
+			throwInvalidItemId("Invalid item id");
+		}
+
+		if (!mediator.cartExists(cartId)) {
+			mediator.addCart(cartId, new Cart(cartId));
+		}
+		// For each cart active view in the selected cartId
+
+		for (CartItemView cartItemView : mediator.getCart(cartId).getCartItemViewList()) {
+
+			// The item we are trying to find, exists in the cart
+			if (cartItemView.getItem().getItemId().getProductId().equals(itemId.getProductId())
+					&& cartItemView.getItem().getItemId().getSupplierId().equals(itemId.getSupplierId())) {
+				SupplierClient sC = getSupplierClientFromCartView(cartItemView);
+				try {
+					ProductView pv = sC.getProduct(itemId.getProductId());
+					// If it exists, check if the ammount required is not
+					// greater than the stock
+					if (cartItemView.getQuantity() + itemQty > pv.getQuantity()) {
+						throwNotEnoughItems("Not enough items");
+						return;
+					}
+
+				} catch (BadProductId_Exception e) {
+					throwInvalidItemId("Invalid Item id");
+				}
+
+				cartItemView.setQuantity(cartItemView.getQuantity() + itemQty);
+
+				if (SecuritySingleton.getInstance().getWsI() == 1) {
+					CartItemView civ = new CartItemView();
+					civ.setQuantity(cartItemView.getQuantity());
+
+					String supId = itemId.getSupplierId();
+					String prodId = itemId.getProductId();
+					SupplierClient client = getSupplierClient(supId);
+					try {
+						ProductView prodView = client.getProduct(prodId);
+						String description = prodView.getDesc();
+						int price = prodView.getPrice();
+
+						ItemView iv = new ItemView();
+						itemViewSetAll(iv, itemId, description, price);
+
+						civ.setItem(iv);
+						CartView result = new CartView();
+						result.getItems().add(civ);
+						result.setCartId(cartId);
+
+						try {
+							MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
+							ligacao.updateCart(result, 1);
+							ids.put(propertyValue, cartId);
+						} catch (MediatorClientException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+						}
+
+					} catch (BadProductId_Exception e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+					}
+				}
+
+				return;
+
+			}
+		}
+
+		// If the item is not in the cart
+
+		CartItemView civ = new CartItemView();
+		civ.setQuantity(itemQty);
+
+		String supId = itemId.getSupplierId();
+		String prodId = itemId.getProductId();
+		SupplierClient client = getSupplierClient(supId);
+
+		try {
+			ProductView prodView = client.getProduct(prodId);
+			if (prodView == null) {
+				throwInvalidItemId("Invalid item id");
+			}
+			// There are not enough items of that kind in the supplier
+
+			if (itemQty > prodView.getQuantity()) {
+				throwNotEnoughItems("Not enough items");
+				return;
+			}
+			String description = prodView.getDesc();
+			int price = prodView.getPrice();
+
+			ItemView iv = new ItemView();
+			itemViewSetAll(iv, itemId, description, price);
+
+			civ.setItem(iv);
+
+			// Add new cartItemView to the mediator
+			mediator.getCart(cartId).addItem(civ);
+
+			if (SecuritySingleton.getInstance().getWsI() == 1) {
+				CartView result = new CartView();
+				result.getItems().add(civ);
+				result.setCartId(cartId);
+
+				try {
+					MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
+					ligacao.updateCart(result, 0);
+					ids.put(propertyValue, cartId);
+				} catch (MediatorClientException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+
+			}
+
+		}
+
+		catch (BadProductId_Exception e) {
+			throwInvalidItemId("Invalid item id");
+
+		}
+
+		// Closes for cycle
+
 	}
 
 	@Override
@@ -190,428 +370,335 @@ public class MediatorPortImpl implements MediatorPortType {
 			throws EmptyCart_Exception, InvalidCartId_Exception, InvalidCreditCard_Exception {
 
 		MessageContext messageContext = webServiceContext.getMessageContext();
-		String propertyValue = (String) messageContext.get(OpIDHandler.REQUEST_PROPERTY);
 
-		if (cartId == null || cartId == "\n" || cartId == "\t" || cartId == "" || cartId.trim().length() == 0) {
-			throwInvalidCartId("The cart ID you specified is invalid.");
+		String propertyValue = (String) messageContext.get(MessageIdHandler.REQUEST_PROPERTY);
+		System.out.printf("%s got token '%s' from response context%n", CLASS_NAME, propertyValue);
+
+		Object obj = ids.get(propertyValue);
+		if (obj != null) {
+			return (ShoppingResultView) obj;
 		}
 
-		if (creditCardNr == null || creditCardNr == "" || creditCardNr == "\n" || creditCardNr == "\t"
-				|| creditCardNr.trim().length() == 0) {
-			throwInvalidCreditCard("The credit card ID you specified is invalid");
+		if (!acceptCart(cartId)) {
+			throwInvalidCartId("null");
 		}
 
-		String PurchaseId = null;
+		if (!acceptCardId(creditCardNr)) {
+			throwInvalidCreditCard("Invalid credit card id");
+		}
 
-		boolean endPurchases = false;
-		boolean incomplete = false;
+		boolean purchaseFinalized = false;
+		boolean uncomplete = false;
 
-		ShoppingResultView shoppingResultView = new ShoppingResultView();
+		ShoppingResultView srv = new ShoppingResultView();
 
-		shoppingResultView.setResult(Result.EMPTY);
-
+		// None pretended item was purchased so far
+		srv.setResult(Result.EMPTY);
 		try {
-
-			CartView cartView = null;
-
-			for (CartView cart : cartsList) {
-				if (cart.getCartId().equals(cartId)) {
-					cartView = cart;
-				}
-			}
-
-			if (cartView == null) {
-
-				throwInvalidCartId("Invalid CartId");
+			Cart cart = mediator.getCart(cartId);
+			if (cart == null) {
+				throwInvalidCartId("Invalid cart id");
 
 			}
+			CreditCardClient ccc = new CreditCardClient("http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc");
+			if (ccc.validateNumber(creditCardNr)) {
 
-			CreditCardClient creditClientCard = new CreditCardClient("http://ws.sd.rnl.tecnico.ulisboa.pt:8080/cc");
-
-			if (creditClientCard.validateNumber(creditCardNr)) {
-
-				for (CartItemView cartItemView : cartView.getItems()) {
-
+				// If the credit card is valid, proced to purchase
+				for (CartItemView cartItemView : cart.getCartItemViewList()) {
 					try {
-						List<SupplierClient> suppClients = (List<SupplierClient>) getSuppliers();
-						SupplierClient client = new SupplierClient(endpointManager.getUddiNaming()
-								.lookup(cartItemView.getItem().getItemId().getSupplierId()));
-						try {
-							for (ShoppingResultView shops : shoppingResultsList) {
-								for (CartItemView itemView : shops.getPurchasedItems())
-									if (cartItemView.getItem() == itemView.getItem()) {
-										for (SupplierClient supp : suppClients) {
-											if (supp.getWsName()
-													.equals(cartItemView.getItem().getItemId().getSupplierId())) {
-												if (itemView.getQuantity() + cartItemView.getQuantity() > supp
-														.getProduct(cartItemView.getItem().getItemId().getProductId())
-														.getQuantity()) {
-													shoppingResultView.getDroppedItems().add(cartItemView);
-													continue;
-												}
-											}
-										}
-									}
-							}
-							client.buyProduct(cartItemView.getItem().getItemId().getProductId(),
-									cartItemView.getQuantity());
-						} catch (BadQuantity_Exception e) {
-
-							e.printStackTrace();
-						}
-						shoppingResultView.getPurchasedItems().add(cartItemView);
+						SupplierClient client = new SupplierClient(
+								endpointManager.getUddiNaming().lookup(getSupplierIdFromCartItemView(cartItemView)));
+						client.buyProduct(cartItemView.getItem().getItemId().getProductId(),
+								cartItemView.getQuantity());
+						srv.getPurchasedItems().add(cartItemView);
 						int cost = cartItemView.getQuantity() * cartItemView.getItem().getPrice();
-						shoppingResultView.setTotalPrice(shoppingResultView.getTotalPrice() + cost);
-						endPurchases = true;
+						srv.setTotalPrice(srv.getTotalPrice() + cost);
+
+						purchaseFinalized = true;
 
 					} catch (SupplierClientException e) {
+						srv.getDroppedItems().add(cartItemView);
+						uncomplete = true;
+					} catch (UDDINamingException u) {
+						srv.getDroppedItems().add(cartItemView);
+						uncomplete = true;
+					} catch (BadProductId_Exception e) {
+						srv.getDroppedItems().add(cartItemView);
+						uncomplete = true;
 
-						shoppingResultView.getDroppedItems().add(cartItemView);
-						incomplete = true;
+					} catch (BadQuantity_Exception e) {
+						srv.getDroppedItems().add(cartItemView);
+						uncomplete = true;
 
-					} catch (UDDINamingException un) {
-
-						shoppingResultView.getDroppedItems().add(cartItemView);
-						incomplete = true;
-
-					} catch (BadProductId_Exception be) {
-
-						shoppingResultView.getDroppedItems().add(cartItemView);
-						incomplete = true;
-
-					} catch (InsufficientQuantity_Exception ie) {
-
-						shoppingResultView.getDroppedItems().add(cartItemView);
-						incomplete = true;
+					} catch (InsufficientQuantity_Exception e) {
+						srv.getDroppedItems().add(cartItemView);
+						uncomplete = true;
 
 					}
+
 				}
-
-			}
-
-			else {
-
-				throwInvalidCreditCard("Invalid creditCard");
-			}
-
-		} catch (CreditCardClientException cce) {
-			throwInvalidCreditCard("Invalid CreditCard");
-		}
-
-		if (endPurchases) {
-			if (incomplete) {
-				shoppingResultView.setResult(Result.PARTIAL);
 			} else {
-				shoppingResultView.setResult(Result.COMPLETE);
+				throwInvalidCreditCard("Invalid credit card");
+			}
+		} catch (CreditCardClientException e) {
+			throwInvalidCreditCard("Invalid CC");
+		}
+
+		// The purchase was taken to its end
+		if (purchaseFinalized) {
+			if (uncomplete) {
+				srv.setResult(Result.PARTIAL);
+			} else {
+				srv.setResult(Result.COMPLETE);
 			}
 		}
-		shoppingResultView.setId("PurchaseID: " + cartId + creditCardNr);
-		shoppingResultsList.add(shoppingResultView);
-		updateShopHistory(shoppingResultView);
-		return shoppingResultView;
+		srv.setId(mediator.generatePurchaseId(cartId));
+		mediator.addPurchase(srv);
+
+		if (SecuritySingleton.getInstance().getWsI() == 1) {
+
+			try {
+				MediatorClient ligacao = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
+				ligacao.updateShopHistory(srv);
+				ids.put(propertyValue, srv);
+			} catch (MediatorClientException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		}
+		return srv;
 
 	}
 
 	@Override
-	public void addToCart(String carId, ItemIdView itemId, int itemQty) throws InvalidCartId_Exception,
-			InvalidItemId_Exception, InvalidQuantity_Exception, NotEnoughItems_Exception {
+	@Oneway
+	public void imAlive() {
+		System.out.println("Checking if alive");
+		int primary = SecuritySingleton.getInstance().getWsI();
+		Date date = new Date();
+		if (primary == 1) {
+			return;
+		} else {
+			SecuritySingleton.getInstance().setDate(date);
+		}
+	}
 
-		MessageContext messageContext = webServiceContext.getMessageContext();
-		String propertyValue = (String) messageContext.get(OpIDHandler.REQUEST_PROPERTY);
+	@Override
+	@Oneway
+	public void updateShopHistory(ShoppingResultView result) {
+		mediator.addPurchase(result);
+	}
 
-		if (itemId == null) {
+	@Override
+	@Oneway
+	public void updateCart(CartView result, int opcao) {
 
-			throwInvalidItemId("The ID you specified for the item is invalid.");
+		if (opcao == 0) {
+			if (!mediator.cartExists(result.getCartId())) {
+				mediator.addCart(result.getCartId(), new Cart(result.getCartId()));
+			}
+			mediator.getCart(result.getCartId()).getCartItemViewList().add(result.getItems().get(0));
+		}
+		if (opcao == 1) {
+
+			for (CartItemView cartItemView : mediator.getCart(result.getCartId()).getCartItemViewList()) {
+
+				if (cartItemView.getItem().getItemId().getProductId()
+						.equals(result.getItems().get(0).getItem().getItemId().getProductId())
+						&& cartItemView.getItem().getItemId().getSupplierId()
+								.equals(result.getItems().get(0).getItem().getItemId().getSupplierId())) {
+
+					cartItemView.setQuantity(result.getItems().get(0).getQuantity());
+				}
+			}
+
 		}
 
-		if (itemId.getProductId() == null || itemId.getProductId() == "\n" || itemId.getProductId() == "\t"
-				|| itemId.getProductId() == "" || itemId.getProductId().trim().length() == 0) {
+	}
+	// Auxiliary operations --------------------------------------------------
 
-			throwInvalidItemId("ProductId is invalid");
+	public List<UDDIRecord> getAvaliableSupplierClients() {
+		List<UDDIRecord> supplierClients = new ArrayList<UDDIRecord>();
+
+		try {
+			// UDDIRecord tem o url e o nome
+			supplierClients = (List<UDDIRecord>) endpointManager.getUddiNaming().listRecords(A45_SUPPLIER + "%");
+		} catch (UDDINamingException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 
-		if (itemId.getSupplierId() == null || itemId.getSupplierId() == "\n" || itemId.getSupplierId() == "\t"
-				|| itemId.getSupplierId() == "" || itemId.getSupplierId().trim().length() == 0) {
+		return supplierClients;
+	}
 
-			throwInvalidItemId("SupplierId is invalid");
+	// Gets unique identifier of supplier, through the wsURL
+	String getSupplierId(UDDIRecord sC) {
+		return sC.getUrl();
+	}
+
+	@Override
+	public String ping(String arg0) {
+		String url = "";
+
+		for (UDDIRecord record : getAvaliableSupplierClients()) {
+			try {
+				if (url != null) {
+					SupplierClient client = new SupplierClient(record.getUrl());
+					url += "\n" + client.ping("Mediator");
+				}
+			} catch (SupplierClientException exp) {
+				exp.printStackTrace();
+			}
 		}
+		return url;
+	}
 
-		if (carId == null || carId == "" || carId.trim().length() == 0) {
-			throwInvalidCartId("The ID you specified for the cart is invalid.");
-		}
-
-		if (itemQty <= 0) {
-			throwInvalidQuantity("The quantity you specified for the item is invalid.");
-		}
-
-		List<SupplierClient> suppClients = (List<SupplierClient>) getSuppliers();
-
-		Boolean cartExists = false;
-
-		for (SupplierClient supplier : suppClients) {
-
-			if (supplier.getWsName().equals(itemId.getSupplierId())) {
-
+	@Override
+	public void clear() { // TODO confirm
+		if (SecuritySingleton.getInstance().getWsI() == 1) {
+			for (UDDIRecord record : getAvaliableSupplierClients()) {
 				try {
-					ProductView product = supplier.getProduct(itemId.getProductId());
-					if (product == null) {
-						throwInvalidItemId("Item doesn't exist");
-					}
-					if (product.getQuantity() < itemQty) {
-						throwNotEnoughItems("The quantity you want is not available.");
-
-					}
-
-					for (CartView cart : cartsList) {
-						if (cart.getCartId().equals(carId)) {
-							cartExists = true;
-
-						}
-					}
-
-					if (!cartExists) {
-						CartView newCart = new CartView();
-						newCart.setCartId(carId);
-
-					}
-
-					for (CartView cart : cartsList) {
-						if (cart.getCartId().equals(carId)) {
-							Boolean exists = false;
-							for (CartItemView item : cart.getItems()) {
-								if (item.getItem().getItemId().getProductId().equals(itemId.getProductId())
-										&& item.getItem().getItemId().getSupplierId().equals(itemId.getSupplierId())) {
-									exists = true;
-									if (product.getQuantity() < item.getQuantity() + itemQty) {
-										throwNotEnoughItems("The quantity you want is not available.");
-
-									}
-									item.setQuantity(item.getQuantity() + itemQty);
-
-								}
-							}
-							if (!exists) {
-								CartItemView newItem = new CartItemView();
-								ItemView itemView = new ItemView();
-								itemView.setItemId(itemId);
-								itemView.setDesc(product.getDesc());
-								itemView.setPrice(product.getPrice());
-								newItem.setItem(itemView);
-								newItem.setQuantity(itemQty);
-								cart.getItems().add(newItem);
-								// System.out.println(cart.getItems().size());
-
-							}
-
-							updateCart(cart);
-						}
-					}
-				} catch (BadProductId_Exception e) {
+					// percorro a lista, crio clientes para os eliminar
+					SupplierClient sC = new SupplierClient(record.getUrl());
+					sC.clear();
+				} catch (SupplierClientException e) {
+					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
 			}
+			MediatorService service = new MediatorService();
+			MediatorPortType ligacao = service.getMediatorPort();
 
+			BindingProvider bindingProvider = (BindingProvider) ligacao;
+			Map<String, Object> requestContext = bindingProvider.getRequestContext();
+			requestContext.put(ENDPOINT_ADDRESS_PROPERTY, secURL);
+			ligacao.clear();
 		}
 
+		mediator = new Mediator();
 	}
 
-	@Override
-	public void imAlive() {
-
-		if (!_isPrim) {
-			date = new Date();
-			// System.out.println(date.toString());
-		}
-
+	public boolean acceptItemId(String productId) {
+		return !(productId == null || productId.trim().length() == 0);
 	}
 
-	@Override
-	public void updateShopHistory(ShoppingResultView shoppingResultsProduct) {
-
-		if (_isPrim) {
-			try {
-
-				MediatorClient mediatorCli = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
-
-				mediatorCli.updateShopHistory(shoppingResultsProduct);
-
-			} catch (MediatorClientException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			this.shoppingResultsList.add(shoppingResultsProduct);
-		}
-
+	public boolean acceptItemIdView(ItemIdView itemIdView) {
+		return !(itemIdView == null || itemIdView.getSupplierId() == null || itemIdView.getProductId() == null
+				|| itemIdView.getProductId().length() == 0 || itemIdView.getSupplierId().length() == 0);
 	}
 
-	@Override
-	public void updateCart(CartView cart) {
-
-		if (_isPrim) {
-			try {
-
-				MediatorClient mediatorCli = new MediatorClient("http://localhost:8072/mediator-ws/endpoint");
-
-				mediatorCli.updateCart(cart);
-
-			} catch (MediatorClientException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-		} else {
-			for (ListIterator<CartView> iter = this.cartsList.listIterator(); iter.hasNext();) {
-				if (iter.next().getCartId().equals(cart.getCartId())) {
-					iter.remove();
-
-				}
-			}
-			this.cartsList.add(cart);
-		}
-
+	public boolean acceptDesc(String descText) {
+		return !(descText == null || descText.trim().length() == 0);
 	}
 
-	// Auxiliary operations --------------------------------------------------
+	public boolean acceptCart(String cartId) {
+		return !(cartId == null || cartId.trim().length() == 0);
+	}
 
-	/* Function Ping */
+	public boolean acceptCardId(String cardId) { // TODO testar so alfanumericos
+		return !(cardId == null || cardId.trim().length() == 0);
+	}
 
-	@Override
-	public String ping(String name) {
+	public boolean acceptQuantity(int quant) { // TODO
+		return quant > 0;
+	}
 
-		String resultado = "";
+	public void itemIdViewSetAll(ItemIdView itemIdView, String prod, String supplier) {
+		itemIdView.setProductId(prod);
+		itemIdView.setSupplierId(supplier);
+	}
+
+	public void itemViewSetAll(ItemView itemView, ItemIdView itemId, String description, int price) {
+		itemView.setItemId(itemId);
+		itemView.setDesc(description);
+		itemView.setPrice(price);
+	}
+
+	public String getSupplierIdFromCartItemView(CartItemView cart) {
+		return cart.getItem().getItemId().getSupplierId();
+	}
+
+	public SupplierClient getSupplierClient(String supId) {
+		SupplierClient sC = null;
 		try {
-			String c = null;
-			for (int i = 1; i < 3; i++) {
-				c = endpointManager.getUddiNaming().lookup("A54_Supplier" + i);
-
-				if (c != null) {
-					SupplierClient client = new SupplierClient(c);
-					resultado += "Supplier 1 :" + client.ping(name) + "\n";
-				}
-
-			}
-		} catch (UDDINamingException exp) {
-			exp.printStackTrace();
-		} catch (SupplierClientException exp) {
-			exp.printStackTrace();
+			sC = new SupplierClient(endpointManager.getUddiNaming().lookup(supId));
+		} catch (SupplierClientException | UDDINamingException e) {
+			// TODO Auto-generated catch block
 		}
-
-		System.out.println(resultado);
-
-		return resultado;
+		return sC;
 	}
 
-	/*-------*/
-
-	/* Function Clear */
-
-	@Override
-	public void clear() {
-
-		Collection<SupplierClient> suppliers = getSuppliers();
-		for (SupplierClient supplier : suppliers) {
-			supplier.clear();
+	public SupplierClient getSupplierClientFromCartView(CartItemView cart) {
+		SupplierClient sC = null;
+		try {
+			sC = new SupplierClient(endpointManager.getUddiNaming().lookup(getSupplierIdFromCartItemView(cart)));
+		} catch (SupplierClientException | UDDINamingException e) {
+			// TODO Auto-generated catch block
 		}
-		resetCartsList();
-		resetShoppingResultView();
-
+		return sC;
 	}
 
-	/* ------ */
-
-	/* function ListCards */
-
+	// View helpers -----------------------------------------------------
 	@Override
 	public List<CartView> listCarts() {
-
-		return cartsList;
+		List<CartView> lista = new ArrayList<CartView>();
+		for (Cart c : mediator.getCarts()) {
+			CartView cart = new CartView();
+			cart.setCartId(c.getCartId());
+			for (CartItemView civ : c.getCartItemViewList()) {
+				cart.getItems().add(civ);
+			}
+			lista.add(cart);
+		}
+		return lista;
 	}
-
-	/* -------- */
-
-	/* Function shopHistory */
 
 	@Override
 	public List<ShoppingResultView> shopHistory() {
-
-		return shoppingResultsList;
-	}
-
-	/* ------ */
-
-	// View helpers -----------------------------------------------------
-
-	public Collection<SupplierClient> getSuppliers() {
-
-		UDDINaming uddiNaming = endpointManager.getUddiNaming();
-		Collection<UDDIRecord> records = new ArrayList<UDDIRecord>();
-		Collection<SupplierClient> suppliers = new ArrayList<SupplierClient>();
-
-		if (uddiNaming != null) {
-			try {
-
-				records = uddiNaming.listRecords("A54_Supplier%");
-
-				for (UDDIRecord record : records) {
-					suppliers.add(new SupplierClient(record.getUrl(), record.getOrgName()));
-
-				}
-			} catch (UDDINamingException | SupplierClientException e) {
-				e.printStackTrace();
-			}
-		}
-		return suppliers;
+		return mediator.getPurchaseList();
 	}
 
 	// Exception helpers -----------------------------------------------------
-
-	/** Helper method to throw new EmptyCart exception */
-	private void throwInvalidCreditCard(final String message) throws InvalidCreditCard_Exception {
-		InvalidCreditCard faultInfo = new InvalidCreditCard();
-		faultInfo.message = message;
-		throw new InvalidCreditCard_Exception(message, faultInfo);
-	}
-
-	/** Helper method to throw new EmptyCart exception */
-	private void throwEmptyCart(final String message) throws EmptyCart_Exception {
-		EmptyCart faultInfo = new EmptyCart();
-		faultInfo.message = message;
-		throw new EmptyCart_Exception(message, faultInfo);
-	}
-
-	/** Helper method to throw new NotEnoughItems exception */
-	private void throwNotEnoughItems(final String message) throws NotEnoughItems_Exception {
-		NotEnoughItems faultInfo = new NotEnoughItems();
-		faultInfo.message = message;
-		throw new NotEnoughItems_Exception(message, faultInfo);
-	}
-
-	/** Helper method to throw new InvalidCartId exception */
-	private void throwInvalidCartId(final String message) throws InvalidCartId_Exception {
-		InvalidCartId faultInfo = new InvalidCartId();
-		faultInfo.message = message;
-		throw new InvalidCartId_Exception(message, faultInfo);
-	}
-
-	/** Helper method to throw new InvalidItemId exception */
 	private void throwInvalidItemId(final String message) throws InvalidItemId_Exception {
 		InvalidItemId faultInfo = new InvalidItemId();
 		faultInfo.message = message;
 		throw new InvalidItemId_Exception(message, faultInfo);
 	}
 
-	/** Helper method to throw new InvalidQuantity exception */
+	private void throwInvalidText(final String message) throws InvalidText_Exception {
+		InvalidText faultInfo = new InvalidText();
+		faultInfo.message = message;
+		throw new InvalidText_Exception(message, faultInfo);
+	}
+
+	private void throwInvalidCartId(final String message) throws InvalidCartId_Exception {
+		InvalidCartId faultInfo = new InvalidCartId();
+		faultInfo.message = message;
+		throw new InvalidCartId_Exception(message, faultInfo);
+	}
+
 	private void throwInvalidQuantity(final String message) throws InvalidQuantity_Exception {
 		InvalidQuantity faultInfo = new InvalidQuantity();
 		faultInfo.message = message;
 		throw new InvalidQuantity_Exception(message, faultInfo);
 	}
 
-	/** Helper method to throw new InvalidText exception */
-	private void throwInvalidText(final String message) throws InvalidText_Exception {
-		InvalidText faultInfo = new InvalidText();
+	private void throwNotEnoughItems(final String message) throws NotEnoughItems_Exception {
+		NotEnoughItems faultInfo = new NotEnoughItems();
 		faultInfo.message = message;
-		throw new InvalidText_Exception(message, faultInfo);
+		throw new NotEnoughItems_Exception(message, faultInfo);
+	}
+
+	private void throwEmptyCart(final String message) throws EmptyCart_Exception {
+		EmptyCart faultInfo = new EmptyCart();
+		faultInfo.message = message;
+		throw new EmptyCart_Exception(message, faultInfo);
+	}
+
+	private void throwInvalidCreditCard(final String message) throws InvalidCreditCard_Exception {
+		InvalidCreditCard faultInfo = new InvalidCreditCard();
+		faultInfo.message = message;
+		throw new InvalidCreditCard_Exception(message, faultInfo);
 	}
 
 }

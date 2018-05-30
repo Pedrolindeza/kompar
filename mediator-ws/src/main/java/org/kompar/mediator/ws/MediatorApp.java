@@ -1,6 +1,6 @@
-package org.kompar.mediator.ws;
+package org.komparator.mediator.ws;
 
-import java.util.Timer;
+import org.komparator.security.SecuritySingleton;
 
 public class MediatorApp {
 
@@ -11,13 +11,18 @@ public class MediatorApp {
 			System.err.println("Usage: java " + MediatorApp.class.getName() + " wsURL OR uddiURL wsName wsURL");
 			return;
 		}
-		
+
 		String uddiURL = null;
 		String wsName = null;
 		String wsURL = null;
+		;
+		String wsI = null;
 
 		// Create server implementation object, according to options
 		MediatorEndpointManager endpoint = null;
+
+
+
 		if (args.length == 1) {
 			wsURL = args[0];
 			endpoint = new MediatorEndpointManager(wsURL);
@@ -25,31 +30,28 @@ public class MediatorApp {
 			uddiURL = args[0];
 			wsName = args[1];
 			wsURL = args[2];
-			endpoint = new MediatorEndpointManager(uddiURL, wsName, wsURL);
+			wsI = args[3];
+			SecuritySingleton sec = SecuritySingleton.getInstance();
+			sec.setName(wsName);
+			sec.setWsI(Integer.parseInt(wsI));
+			endpoint = new MediatorEndpointManager(uddiURL, wsName, wsURL, wsI);
 			endpoint.setVerbose(true);
 		}
 
+		Runtime.getRuntime().addShutdownHook(new Thread() {
+			@Override
+			public void run() {
+				String wsName = args[1];
+				System.out.println("Unpublished" + wsName + "from UDDI");
+			}
+		});
+
+		LifeProof lifeProof = new LifeProof(endpoint);
 		try {
 			endpoint.start();
-			
-			System.out.println("Starting LifeProof ... ");
-
-	        // create timer object
-	        // set it as a daemon so the JVM doesn't wait for it when quitting
-	        endpoint.setTimer(new Timer(/*isDaemon*/ true));
-
-	        // create timer task object
-	        LifeProof life= new LifeProof(endpoint);
-
-	        endpoint.getTimer().schedule(life, /*delay*/ 0 * 1000, /*period*/ 5 * 1000);
-
-	        // sleep 10 seconds, then finish
-	        // Thread.sleep(10 * 1000);
-	        //System.out.println("LifeProof finished.");
+			lifeProof.start();
 			endpoint.awaitConnections();
-			
 		} finally {
-			
 			endpoint.stop();
 		}
 

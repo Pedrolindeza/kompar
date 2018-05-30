@@ -1,13 +1,10 @@
-package org.kompar.mediator.ws;
+package org.komparator.mediator.ws;
 
 import java.io.IOException;
-import java.util.Date;
-import java.util.Timer;
 
 import javax.xml.ws.Endpoint;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
-import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINamingException;
 
 /** End point manager */
 public class MediatorEndpointManager {
@@ -16,14 +13,14 @@ public class MediatorEndpointManager {
 	private String uddiURL = null;
 	/** Web Service name */
 	private String wsName = null;
-	
-	private Timer timer;
 
 	/** Get Web Service UDDI publication name */
 	public String getWsName() {
 		return wsName;
 	}
-
+	/** Web Service instance*/
+	private String wsI = null;
+	
 	/** Web Service location to publish */
 	private String wsURL = null;
 
@@ -31,11 +28,8 @@ public class MediatorEndpointManager {
 	private MediatorPortImpl portImpl = new MediatorPortImpl(this);
 
 	/** Obtain Port implementation */
+
 	public MediatorPortType getPort() {
-		return portImpl;
-	}
-	
-	public MediatorPortImpl getPortImpl(){
 		return portImpl;
 	}
 
@@ -45,7 +39,7 @@ public class MediatorEndpointManager {
 	private UDDINaming uddiNaming = null;
 
 	/** Get UDDI Naming instance for contacting UDDI server */
-	UDDINaming getUddiNaming() {
+	public UDDINaming getUddiNaming() {
 		return uddiNaming;
 	}
 
@@ -60,17 +54,23 @@ public class MediatorEndpointManager {
 		this.verbose = verbose;
 	}
 
-	/** constructor with provided UDDI location, WS name, and WS URL */
-	public MediatorEndpointManager(String uddiURL, String wsName, String wsURL) {
+	public String getUddiUrl() {
+		return uddiURL;
+	}
+
+	/** constructor with provided UDDI location, WS name, and WS URL and WS Instance identifier */
+	public MediatorEndpointManager(String uddiURL, String wsName, String wsURL, String wsI) {
 		this.uddiURL = uddiURL;
 		this.wsName = wsName;
 		this.wsURL = wsURL;
+		this.wsI = wsI;
 	}
-
+	
 	/** constructor with provided web service URL */
 	public MediatorEndpointManager(String wsURL) {
-		if (wsURL == null)
+		if (wsURL == null) {
 			throw new NullPointerException("Web Service URL cannot be null!");
+		}
 		this.wsURL = wsURL;
 	}
 
@@ -78,7 +78,10 @@ public class MediatorEndpointManager {
 
 	public void start() throws Exception {
 		try {
-			endpoint = Endpoint.create(this.portImpl);
+			// publish end point
+
+			System.out.println(portImpl);
+			endpoint = Endpoint.create(portImpl);
 			if (verbose) {
 				System.out.printf("Starting %s%n", wsURL);
 			}
@@ -91,11 +94,20 @@ public class MediatorEndpointManager {
 			}
 			throw e;
 		}
-		publishToUDDI();
+		if (Integer.parseInt(wsI) == 1)	{
+			publishToUDDI();
+		}
 	}
 
 	public void awaitConnections() {
 		if (verbose) {
+			if (wsI.equals("1"))	{
+				System.out.println("Primary mediator initialized");
+			}
+			
+			else if (Integer.parseInt(wsI) > 1)	{
+				System.out.println("Backup mediator initialized");
+			}
 			System.out.println("Awaiting connections");
 			System.out.println("Press enter to shutdown");
 		}
@@ -122,41 +134,23 @@ public class MediatorEndpointManager {
 				System.out.printf("Caught exception when stopping: %s%n", e);
 			}
 		}
-		this.portImpl = null;
+
+		portImpl = null;
 		unpublishFromUDDI();
 	}
 
 	/* UDDI */
 
 	void publishToUDDI() throws Exception {
-		
-		
 		try {
 			// publish to UDDI
-			
 			if (uddiURL != null) {
 				if (verbose) {
-					
+					System.out.printf("Publishing '%s' to UDDI at %s%n", wsName, uddiURL);
 				}
 				uddiNaming = new UDDINaming(uddiURL);
-				if(uddiNaming.lookup("A54_Mediator") == null) {
-					System.out.printf("Publishing '%s' to UDDI at %s%n", wsName, uddiURL);
-					System.out.println("Mediator Primario");
-					portImpl.setIsPrim(true);
-				}
-				else {
-					
-					System.out.println("Mediator Secundario");
-
-					portImpl.setIsPrim(false);
-					return;
-
-				}
 				uddiNaming.rebind(wsName, wsURL);
 			}
-			
-			
-				
 		} catch (Exception e) {
 			uddiNaming = null;
 			if (verbose) {
@@ -181,36 +175,6 @@ public class MediatorEndpointManager {
 				System.out.printf("Caught exception when unbinding: %s%n", e);
 			}
 		}
-		
-		this.getTimer().cancel();
-		this.getTimer().purge();
-	}
-	
-	public void checkIfAlive(){
-		
-		Date now = new Date();
-		if (now.getTime() - portImpl.date.getTime() > 6000 )
-			try {
-				
-				System.out.println("Primary Mediator Offline");
-
-				this.getTimer().cancel();
-				this.getTimer().purge();
-				
-				uddiNaming.rebind(wsName, wsURL);
-				System.out.println("Assuming RollPLay");
-			} catch (UDDINamingException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
 	}
 
-	public Timer getTimer() {
-		return timer;
-	}
-
-	public void setTimer(Timer timer) {
-		this.timer = timer;
-	} 
-
-	}
+}
