@@ -11,8 +11,6 @@
     <modules>
         <module>supplier-ws</module>
         <module>supplier-ws-cli</module>
-
-        <module>mediator-ws-cli</module>
     </modules>
 
 </project>
