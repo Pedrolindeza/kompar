@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.cli;
+package org.magazyn.store.ws.cli;
 
 /** Main class that starts the Supplier Web Service client. */
 public class SupplierClientApp {
@@ -12,7 +12,7 @@ public class SupplierClientApp {
 		}
 		SupplierClient client ;
         String UDDIURL = null;
-        String wsName = null;
+        String wsName = null; 
         String wsURL = null;
         if (args.length == 1) {
             wsURL = args[0];

@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.cli;
+package org.magazyn.store.ws.cli;
 
 import static javax.xml.ws.BindingProvider.ENDPOINT_ADDRESS_PROPERTY;
 
@@ -7,8 +7,8 @@ import java.util.Map;
 
 import javax.xml.ws.BindingProvider;
 
-import org.kompar.supplier.ws.cli.SupplierClientException;
-import org.kompar.supplier.ws.*;
+import org.magazyn.store.ws.cli.SupplierClientException;
+import org.magazyn.wharehouse.ws.*;
 
 import pt.ulisboa.tecnico.sdis.ws.uddi.UDDINaming;
 
@@ -28,7 +28,7 @@ public class SupplierClient implements SupplierPortType {
 
 	/** WS end point address */
 	private String wsURL = null;
-	private String UDDIURL = null;// default value is defined inside WSDL
+	private String UDDIURL = null; // default value is defined inside WSDL
 	private String wsName = null;
 
 	public String getWsURL() {

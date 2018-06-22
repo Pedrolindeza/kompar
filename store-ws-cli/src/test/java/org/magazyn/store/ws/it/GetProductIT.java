@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.it;
+package org.magazyn.store.ws.it;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
@@ -8,9 +8,9 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.kompar.supplier.ws.BadProductId_Exception;
-import org.kompar.supplier.ws.BadProduct_Exception;
-import org.kompar.supplier.ws.ProductView;
+import org.magazyn.wharehouse.ws.BadProductId_Exception;
+import org.magazyn.wharehouse.ws.BadProduct_Exception;
+import org.magazyn.wharehouse.ws.ProductView;
 
 /**
  * Test suite
@@ -18,7 +18,7 @@ import org.kompar.supplier.ws.ProductView;
 public class GetProductIT extends BaseIT {
 
 	// static members
-
+ 
 	// one-time initialization and clean-up
 	@BeforeClass
 	public static void oneTimeSetUp() throws BadProductId_Exception, BadProduct_Exception {

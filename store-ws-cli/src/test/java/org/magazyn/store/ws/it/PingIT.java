@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.it;
+package org.magazyn.store.ws.it;
 
 import static org.junit.Assert.assertNotNull;
 

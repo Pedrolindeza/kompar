@@ -1,11 +1,11 @@
-package org.kompar.supplier.ws.it;
+package org.magazyn.store.ws.it;
 
 import java.io.IOException;
 import java.util.Properties;
 
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
-import org.kompar.supplier.ws.cli.SupplierClient;
+import org.magazyn.store.ws.cli.SupplierClient;
 
 public class BaseIT {
 
@@ -29,7 +29,7 @@ public class BaseIT {
 
 		String wsURL = testProps.getProperty("ws.url");
 		client = new SupplierClient(wsURL);
-		// CLIENT.setVerbose(true);
+		client.setVerbose(true);
 	}
 
 	@AfterClass

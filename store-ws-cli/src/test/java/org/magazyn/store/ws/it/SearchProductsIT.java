@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.it;
+package org.magazyn.store.ws.it;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -12,14 +12,14 @@ import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.kompar.supplier.ws.*;
+import org.magazyn.wharehouse.ws.*;
 
 /**
  * Test suite
  */
 @SuppressWarnings("unused")
 public class SearchProductsIT extends BaseIT {
-
+ 
 	// static members
 
 	// one-time initialization and clean-up

@@ -12,7 +12,7 @@ import org.magazyn.wharehouse.domain.Purchase;
 import org.magazyn.wharehouse.domain.QuantityException;
 import org.magazyn.wharehouse.domain.Supplier;
 
-@WebService(endpointInterface = "org.magazyn.wharehouse.ws.SupplierPortType", wsdlLocation = "wharehouse.1_0.wsdl", name = "WharehouseWebService", portName = "WharehousePort", targetNamespace = "http://ws.wharehouse.magazyn.org/", serviceName = "WharehouseService")
+@WebService(endpointInterface = "org.magazyn.wharehouse.ws.SupplierPortType", wsdlLocation = "wharehouse.1_0.wsdl", name = "SupplierWebService", portName = "SupplierPort", targetNamespace = "http://ws.wharehouse.magazyn.org/", serviceName = "SupplierService")
 public class SupplierPortImpl implements SupplierPortType {
 
 	// end point manager
@@ -52,6 +52,7 @@ public class SupplierPortImpl implements SupplierPortType {
 		if (descText == null || descText.trim().length() == 0) {
 			throwBadText("Empty String or whitespace");
 		}
+		
 		List<ProductView> lista = new ArrayList<ProductView>();
 		Supplier supplier = Supplier.getInstance();
 		Set<String> produtos = supplier.getProductsIDs();

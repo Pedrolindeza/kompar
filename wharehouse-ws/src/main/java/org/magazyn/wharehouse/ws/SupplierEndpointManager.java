@@ -84,6 +84,7 @@ public class SupplierEndpointManager {
 		}
 		try {
 			System.in.read();
+			//imprimir input recebido
 		} catch (IOException e) {
 			if (verbose) {
 				System.out.printf("Caught i/o exception when awaiting requests: %s%n", e);

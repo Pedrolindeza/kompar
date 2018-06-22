@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws.cli;
+package org.magazyn.store.ws.cli;
 
 /** Exception used to report problems in Web Service port wrapper. */
 public class SupplierClientException extends Exception {
