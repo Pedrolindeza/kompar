@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <!--
-WSDL contract for a Kompar Supplier service
+WSDL contract for a Wharehouse service
 
 This WSDL defines the operations provided by the Web Service,
 and should not be modified.
@@ -14,13 +14,13 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:soap="http://schemas.xmlsoap.org/wsdl/soap/"
     xmlns:wsam="http://www.w3.org/2007/05/addressing/metadata"
-    xmlns:tns="http://ws.supplier.kompar.org/"
-    targetNamespace="http://ws.supplier.kompar.org/"
+    xmlns:tns="http://ws.wharehouse.magazyn.org/"
+    targetNamespace="http://ws.wharehouse.magazyn.org/"
     name="SupplierWebService">
 
     <types>
         <xs:schema
-            targetNamespace="http://ws.supplier.kompar.org/"
+            targetNamespace="http://ws.wharehouse.magazyn.org/"
             version="1.0" >
             <xs:element name="BadProductId" type="tns:BadProductId"/>
 
@@ -269,43 +269,43 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
     <!-- Port Type (Interface) -->
     <portType name="SupplierPortType">
         <operation name="clear">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/clearRequest" message="tns:clear"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/clearResponse" message="tns:clearResponse"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/clearRequest" message="tns:clear"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/clearResponse" message="tns:clearResponse"/>
         </operation>
         <operation name="ping">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/pingRequest" message="tns:ping"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/pingResponse" message="tns:pingResponse"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/pingRequest" message="tns:ping"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/pingResponse" message="tns:pingResponse"/>
         </operation>
         <operation name="buyProduct">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/buyProductRequest" message="tns:buyProduct"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/buyProductResponse" message="tns:buyProductResponse"/>
-            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.supplier.kompar.org/Supplier/buyProduct/Fault/BadProductId"/>
-            <fault message="tns:BadQuantity" name="BadQuantity" wsam:Action="http://ws.supplier.kompar.org/Supplier/buyProduct/Fault/BadQuantity"/>
-            <fault message="tns:InsufficientQuantity" name="InsufficientQuantity" wsam:Action="http://ws.supplier.kompar.org/Supplier/buyProduct/Fault/InsufficientQuantity"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProductRequest" message="tns:buyProduct"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProductResponse" message="tns:buyProductResponse"/>
+            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProduct/Fault/BadProductId"/>
+            <fault message="tns:BadQuantity" name="BadQuantity" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProduct/Fault/BadQuantity"/>
+            <fault message="tns:InsufficientQuantity" name="InsufficientQuantity" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProduct/Fault/InsufficientQuantity"/>
         </operation>
         <operation name="listPurchases">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/listPurchasesRequest" message="tns:listPurchases"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/listPurchasesResponse" message="tns:listPurchasesResponse"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listPurchasesRequest" message="tns:listPurchases"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listPurchasesResponse" message="tns:listPurchasesResponse"/>
         </operation>
         <operation name="getProduct">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/getProductRequest" message="tns:getProduct"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/getProductResponse" message="tns:getProductResponse"/>
-            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.supplier.kompar.org/Supplier/getProduct/Fault/BadProductId"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProductRequest" message="tns:getProduct"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProductResponse" message="tns:getProductResponse"/>
+            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProduct/Fault/BadProductId"/>
         </operation>
         <operation name="searchProducts">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/searchProductsRequest" message="tns:searchProducts"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/searchProductsResponse" message="tns:searchProductsResponse"/>
-            <fault message="tns:BadText" name="BadText" wsam:Action="http://ws.supplier.kompar.org/Supplier/searchProducts/Fault/BadText"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProductsRequest" message="tns:searchProducts"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProductsResponse" message="tns:searchProductsResponse"/>
+            <fault message="tns:BadText" name="BadText" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProducts/Fault/BadText"/>
         </operation>
         <operation name="createProduct">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/createProductRequest" message="tns:createProduct"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/createProductResponse" message="tns:createProductResponse"/>
-            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.supplier.kompar.org/Supplier/createProduct/Fault/BadProductId"/>
-            <fault message="tns:BadProduct" name="BadProduct" wsam:Action="http://ws.supplier.kompar.org/Supplier/createProduct/Fault/BadProduct"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/createProductRequest" message="tns:createProduct"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/createProductResponse" message="tns:createProductResponse"/>
+            <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/createProduct/Fault/BadProductId"/>
+            <fault message="tns:BadProduct" name="BadProduct" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/createProduct/Fault/BadProduct"/>
         </operation>
         <operation name="listProducts">
-            <input wsam:Action="http://ws.supplier.kompar.org/Supplier/listProductsRequest" message="tns:listProducts"/>
-            <output wsam:Action="http://ws.supplier.kompar.org/Supplier/listProductsResponse" message="tns:listProductsResponse"/>
+            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listProductsRequest" message="tns:listProducts"/>
+            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listProductsResponse" message="tns:listProductsResponse"/>
         </operation>
     </portType>
 
@@ -410,7 +410,7 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
     <!-- Service -->
     <service name="SupplierService">
         <port name="SupplierPort" binding="tns:SupplierPortSoapHttpBinding">
-            <soap:address location="http://localhost:8081/supplier-ws/endpoint"/>
+            <soap:address location="http://localhost:8081/wharehouse-ws/endpoint"/>
         </port>
     </service>
 

@@ -1,4 +1,4 @@
-package org.kompar.supplier.domain;
+package org.magazyn.wharehouse.domain;
 
 /** Exception used to signal a problem with the product quantity. */
 public class QuantityException extends Exception {

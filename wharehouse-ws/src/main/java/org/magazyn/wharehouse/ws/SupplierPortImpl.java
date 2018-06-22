@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws;
+package org.magazyn.wharehouse.ws;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -7,12 +7,12 @@ import java.util.Set;
 import javax.jws.HandlerChain;
 import javax.jws.WebService;
 
-import org.kompar.supplier.domain.Product;
-import org.kompar.supplier.domain.Purchase;
-import org.kompar.supplier.domain.QuantityException;
-import org.kompar.supplier.domain.Supplier;
+import org.magazyn.wharehouse.domain.Product;
+import org.magazyn.wharehouse.domain.Purchase;
+import org.magazyn.wharehouse.domain.QuantityException;
+import org.magazyn.wharehouse.domain.Supplier;
 
-@WebService(endpointInterface = "org.kompar.supplier.ws.SupplierPortType", wsdlLocation = "supplier.1_0.wsdl", name = "SupplierWebService", portName = "SupplierPort", targetNamespace = "http://ws.supplier.kompar.org/", serviceName = "SupplierService")
+@WebService(endpointInterface = "org.magazyn.wharehouse.ws.SupplierPortType", wsdlLocation = "wharehouse.1_0.wsdl", name = "WharehouseWebService", portName = "WharehousePort", targetNamespace = "http://ws.wharehouse.magazyn.org/", serviceName = "WharehouseService")
 public class SupplierPortImpl implements SupplierPortType {
 
 	// end point manager

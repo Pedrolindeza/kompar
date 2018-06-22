@@ -1,4 +1,4 @@
-package org.kompar.supplier.domain;
+package org.magazyn.wharehouse.domain;
 
 /**
  * Product entity. Only the product quantity is mutable so its get/set methods

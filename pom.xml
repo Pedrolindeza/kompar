@@ -3,14 +3,14 @@
     <modelVersion>4.0.0</modelVersion>
     <!-- http://maven.apache.org/pom.html#Quick_Overview -->
 
-    <groupId>org.kompar</groupId>
-    <artifactId>kompar</artifactId>
+    <groupId>org.magazyn</groupId>
+    <artifactId>magazyn</artifactId>
     <version>1.0-SNAPSHOT</version>
     <packaging>pom</packaging>
 
     <modules>
-        <module>supplier-ws</module>
-        <module>supplier-ws-cli</module>
+        <module>wharehouse-ws</module>
+        <module>store-ws-cli</module>
     </modules>
 
 </project>

@@ -1,4 +1,4 @@
-package org.kompar.supplier.domain;
+package org.magazyn.wharehouse.domain;
 
 import java.util.Date;
 

@@ -1,4 +1,4 @@
-package org.kompar.supplier.ws;
+package org.magazyn.wharehouse.ws;
 
 import java.io.IOException;
 
