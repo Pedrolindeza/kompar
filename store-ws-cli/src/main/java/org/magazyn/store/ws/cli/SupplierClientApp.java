@@ -18,14 +18,14 @@ public class SupplierClientApp {
             wsURL = args[0];
             client = new SupplierClient(wsURL);
         } else {
-        	System.out.println(args[0]+"<- UDDIURL wsName ->"+args[1]);
+        	System.out.println(args[0]+" <- UDDIURL wsName -> "+args[1]);
             UDDIURL = args[0];
             wsName = args[1];
             client = new SupplierClient(UDDIURL,wsName);
         } 
 
 		// Create client
-		System.out.printf("Creating client for server at %s%n", wsURL);
+		System.out.printf("Creating client for server at %s%n", UDDIURL);
 
 		// the following remote invocations are just basic examples
 		// the actual tests are made using JUnit
