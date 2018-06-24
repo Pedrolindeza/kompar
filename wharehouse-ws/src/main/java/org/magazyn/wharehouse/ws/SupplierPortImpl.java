@@ -25,6 +25,8 @@ public class SupplierPortImpl implements SupplierPortType {
 	// Main operations -------------------------------------------------------
 	@Override
 	public ProductView getProduct(String productId) throws BadProductId_Exception {
+		System.out.println("\nStore is looking for " + productId + "\n");
+		
 		// check product id
 		if (productId == null) {
 			throwBadProductId("Product identifier cannot be null!");
