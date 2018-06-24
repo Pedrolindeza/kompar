@@ -21,7 +21,7 @@ public class SupplierPortImpl implements SupplierPortType {
 	public SupplierPortImpl(SupplierEndpointManager endpointManager) {
 		this.endpointManager = endpointManager;
 	}
-
+ 
 	// Main operations -------------------------------------------------------
 	@Override
 	public ProductView getProduct(String productId) throws BadProductId_Exception {
@@ -44,29 +44,6 @@ public class SupplierPortImpl implements SupplierPortType {
 		}
 		// product not found
 		return null;
-	}
-
-	@Override
-	public List<ProductView> searchProducts(String descText) throws BadText_Exception {
-
-		if (descText == null || descText.trim().length() == 0) {
-			throwBadText("Empty String or whitespace");
-		}
-		
-		List<ProductView> lista = new ArrayList<ProductView>();
-		Supplier supplier = Supplier.getInstance();
-		Set<String> produtos = supplier.getProductsIDs();
-		for (String produto : produtos) {
-			Product p = supplier.getProduct(produto);
-			if (p.getDescription().contains(descText)) {
-
-				ProductView pview = newProductView(p);
-				lista.add(pview);
-			}
-
-		}
-		return lista;
-
 	}
 
 	@Override
@@ -99,6 +76,7 @@ public class SupplierPortImpl implements SupplierPortType {
 				throwInsufficientQuantity("There are not enough items to sell");
 			}
 		}
+		System.out.println("ProductID " + productId + " bought " + quantity + " time(s)" );
 		return purchaseId;
 	}
 
@@ -118,8 +96,8 @@ public class SupplierPortImpl implements SupplierPortType {
 			name = "friend";
 		}
 
-		String wsName = "Supplier";
-
+		String wsName = "Wharehouse";
+		System.out.println("Received Ping() from " + name);
 		StringBuilder builder = new StringBuilder();
 		builder.append("Hello ").append(name);
 		builder.append(" from ").append(wsName);
@@ -129,7 +107,7 @@ public class SupplierPortImpl implements SupplierPortType {
 	@Override
 	public void clear() {
 		Supplier.getInstance().reset();
-	}
+	} 
 
 	@Override
 	public void createProduct(ProductView productToCreate) throws BadProductId_Exception, BadProduct_Exception {
@@ -170,26 +148,14 @@ public class SupplierPortImpl implements SupplierPortType {
 	@Override
 	public List<ProductView> listProducts() {
 		Supplier supplier = Supplier.getInstance();
-		List<ProductView> pvs = new ArrayList<ProductView>();
+		List<ProductView> pvw = new ArrayList<ProductView>();
 		for (String pid : supplier.getProductsIDs()) {
-			Product p = supplier.getProduct(pid);
-			ProductView pv = newProductView(p);
-			pvs.add(pv);
+			ProductView pro = newProductView(supplier.getProduct(pid));
+			pvw.add(pro);
 		}
-		return pvs;
+		return pvw;
 	}
 
-	@Override
-	public List<PurchaseView> listPurchases() {
-		Supplier supplier = Supplier.getInstance();
-		List<PurchaseView> pvs = new ArrayList<PurchaseView>();
-		for (String pid : supplier.getPurchasesIDs()) {
-			Purchase p = supplier.getPurchase(pid);
-			PurchaseView pv = newPurchaseView(p);
-			pvs.add(pv);
-		}
-		return pvs;
-	}
 
 	// View helpers ----------------------------------------------------------
 
@@ -199,15 +165,6 @@ public class SupplierPortImpl implements SupplierPortType {
 		view.setDesc(product.getDescription());
 		view.setQuantity(product.getQuantity());
 		view.setPrice(product.getPrice());
-		return view;
-	}
-
-	private PurchaseView newPurchaseView(Purchase purchase) {
-		PurchaseView view = new PurchaseView();
-		view.setId(purchase.getPurchaseId());
-		view.setProductId(purchase.getProductId());
-		view.setQuantity(purchase.getQuantity());
-		view.setUnitPrice(purchase.getUnitPrice());
 		return view;
 	}
 
@@ -225,13 +182,6 @@ public class SupplierPortImpl implements SupplierPortType {
 		BadProduct faultInfo = new BadProduct();
 		faultInfo.message = message;
 		throw new BadProduct_Exception(message, faultInfo);
-	}
-
-	/** Helper method to throw new BadText exception */
-	private void throwBadText(final String message) throws BadText_Exception {
-		BadText faultInfo = new BadText();
-		faultInfo.message = message;
-		throw new BadText_Exception(message, faultInfo);
 	}
 
 	/** Helper method to throw new BadQuantity exception */

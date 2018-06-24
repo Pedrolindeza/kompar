@@ -10,30 +10,27 @@ public class SupplierClientApp {
 			System.err.println("Usage: java " + SupplierClientApp.class.getName() + " wsURL");
 			return;
 		}
-		SupplierClient client ;
+		SupplierClient store ;
         String UDDIURL = null;
         String wsName = null; 
         String wsURL = null;
         if (args.length == 1) {
             wsURL = args[0];
-            client = new SupplierClient(wsURL);
+            store = new SupplierClient(wsURL);
         } else {
-        	System.out.println(args[0]+" <- UDDIURL wsName -> "+args[1]);
+        	System.out.println(args[0] + " <- UDDIURL wsName -> " + args[1]);
             UDDIURL = args[0];
             wsName = args[1];
-            client = new SupplierClient(UDDIURL,wsName);
+            store = new SupplierClient(UDDIURL,wsName);
         } 
-
-		// Create client
-		System.out.printf("Creating client for server at %s%n", UDDIURL);
 
 		// the following remote invocations are just basic examples
 		// the actual tests are made using JUnit
 
 		System.out.println("Invoke ping()...");
-		String result = client.ping("client");
-		System.out.print("Result: ");
-		System.out.println(result);
+		String result = store.ping("Store");
+		
+		System.out.println("Result: " + result);
 	}
 
 }

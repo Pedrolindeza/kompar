@@ -26,7 +26,7 @@ public class SearchProductsIT extends BaseIT {
 	@BeforeClass
 	public static void oneTimeSetUp() throws BadProductId_Exception, BadProduct_Exception{
 		// clear remote service state before all tests
-		client.clear();
+		store.clear();
 
 		// fill-in test products
 		// (since getProduct is read-only the initialization below
@@ -37,7 +37,7 @@ public class SearchProductsIT extends BaseIT {
 			product.setDesc("Basketball");
 			product.setPrice(10);
 			product.setQuantity(10);
-			client.createProduct(product);
+			store.createProduct(product);
 		}
 		{
 			ProductView product = new ProductView();
@@ -45,7 +45,7 @@ public class SearchProductsIT extends BaseIT {
 			product.setDesc("Baseball");
 			product.setPrice(20);
 			product.setQuantity(20);
-			client.createProduct(product);
+			store.createProduct(product);
 		}
 		{
 			ProductView product = new ProductView();
@@ -53,15 +53,7 @@ public class SearchProductsIT extends BaseIT {
 			product.setDesc("Soccer ball");
 			product.setPrice(30);
 			product.setQuantity(30);
-			client.createProduct(product);
-		}
-		{
-			ProductView product = new ProductView();
-			product.setId("Y3");
-			product.setDesc("Baseball");
-			product.setPrice(40);
-			product.setQuantity(40);
-			client.createProduct(product);
+			store.createProduct(product);
 		}
 		
 	}
@@ -69,7 +61,7 @@ public class SearchProductsIT extends BaseIT {
 	@AfterClass
 	public static void oneTimeTearDown() {
 		// clear remote service state after all tests
-		client.clear();
+		store.clear();
 	}
 
 	// members
@@ -82,49 +74,17 @@ public class SearchProductsIT extends BaseIT {
 	@After
 	public void tearDown() {
 	}
-
-	// tests
-	// assertEquals(expected, actual);
-
-	// public List<ProductView> searchProducts(String descText) throws
-	// BadText_Exception
-
-	// bad input tests
-
-	@Test(expected = BadText_Exception.class)
-	public void searchProductsNullTest() throws BadText_Exception {
-		client.searchProducts(null);
-	}
-
-	@Test(expected = BadText_Exception.class)
-	public void searchProductsEmptyTest() throws BadText_Exception {
-		client.searchProducts("");
-	}
-
-	@Test(expected = BadText_Exception.class)
-	public void searchProductsWhitespaceTest() throws BadText_Exception {
-		client.searchProducts(" ");
-	}
-
-	@Test(expected = BadText_Exception.class)
-	public void searchProductsTabTest() throws BadText_Exception {
-		client.searchProducts("\t");
-	}
-
-	@Test(expected = BadText_Exception.class)
-	public void searchProductsNewlineTest() throws BadText_Exception {
-		client.searchProducts("\n");
-	}
-	
-	// main tests
+	 
+	// main test
 
 	@Test
-	public void searchProductsDescription() throws BadText_Exception {
-		List<ProductView> l = client.searchProducts("Baseball");
+	public void searchProductSuccess() throws BadProductId_Exception{
 		
-		for(ProductView pv : l) {
-			assertEquals("Baseball", pv.getDesc());
+		ProductView pw = store.getProduct("X1");
+		if (pw != null){
+				System.out.println("\n" + pw.getDesc() + " exists with quantity of : " + pw.getQuantity() + "\n"); return;}
+		else{
+			System.out.println("\nProduct not found!\n");
 		}
 	}
-
 }

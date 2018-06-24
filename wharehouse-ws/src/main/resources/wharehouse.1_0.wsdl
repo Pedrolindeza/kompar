@@ -52,17 +52,9 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
 
             <xs:element name="listProductsResponse" type="tns:listProductsResponse"/>
 
-            <xs:element name="listPurchases" type="tns:listPurchases"/>
-
-            <xs:element name="listPurchasesResponse" type="tns:listPurchasesResponse"/>
-
             <xs:element name="ping" type="tns:ping"/>
 
             <xs:element name="pingResponse" type="tns:pingResponse"/>
-
-            <xs:element name="searchProducts" type="tns:searchProducts"/>
-
-            <xs:element name="searchProductsResponse" type="tns:searchProductsResponse"/>
 
             <xs:complexType name="ping">
                 <xs:sequence>
@@ -117,25 +109,6 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
                 </xs:sequence>
             </xs:complexType>
 
-            <xs:complexType name="listPurchases">
-                <xs:sequence/>
-            </xs:complexType>
-
-            <xs:complexType name="listPurchasesResponse">
-                <xs:sequence>
-                    <xs:element name="purchases" type="tns:purchaseView" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:sequence>
-            </xs:complexType>
-
-            <xs:complexType name="purchaseView">
-                <xs:sequence>
-                    <xs:element name="id" type="xs:string" minOccurs="0"/>
-                    <xs:element name="productId" type="xs:string" minOccurs="0"/>
-                    <xs:element name="quantity" type="xs:int"/>
-                    <xs:element name="unitPrice" type="xs:int"/>
-                </xs:sequence>
-            </xs:complexType>
-
             <xs:complexType name="getProduct">
                 <xs:sequence>
                     <xs:element name="productId" type="xs:string" minOccurs="0"/>
@@ -181,18 +154,6 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
                 <xs:sequence/>
             </xs:complexType>
 
-            <xs:complexType name="searchProducts">
-                <xs:sequence>
-                    <xs:element name="descText" type="xs:string" minOccurs="0"/>
-                </xs:sequence>
-            </xs:complexType>
-
-            <xs:complexType name="searchProductsResponse">
-                <xs:sequence>
-                    <xs:element name="products" type="tns:productView" minOccurs="0" maxOccurs="unbounded"/>
-                </xs:sequence>
-            </xs:complexType>
-
             <xs:complexType name="BadText">
                 <xs:sequence>
                     <xs:element name="message" type="xs:string" minOccurs="0"/>
@@ -232,23 +193,11 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
     <message name="InsufficientQuantity">
         <part name="fault" element="tns:InsufficientQuantity"/>
     </message>
-    <message name="listPurchases">
-        <part name="parameters" element="tns:listPurchases"/>
-    </message>
-    <message name="listPurchasesResponse">
-        <part name="parameters" element="tns:listPurchasesResponse"/>
-    </message>
     <message name="getProduct">
         <part name="parameters" element="tns:getProduct"/>
     </message>
     <message name="getProductResponse">
         <part name="parameters" element="tns:getProductResponse"/>
-    </message>
-    <message name="searchProducts">
-        <part name="parameters" element="tns:searchProducts"/>
-    </message>
-    <message name="searchProductsResponse">
-        <part name="parameters" element="tns:searchProductsResponse"/>
     </message>
     <message name="BadText">
         <part name="fault" element="tns:BadText"/>
@@ -283,19 +232,11 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             <fault message="tns:BadQuantity" name="BadQuantity" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProduct/Fault/BadQuantity"/>
             <fault message="tns:InsufficientQuantity" name="InsufficientQuantity" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/buyProduct/Fault/InsufficientQuantity"/>
         </operation>
-        <operation name="listPurchases">
-            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listPurchasesRequest" message="tns:listPurchases"/>
-            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/listPurchasesResponse" message="tns:listPurchasesResponse"/>
-        </operation>
+        
         <operation name="getProduct">
             <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProductRequest" message="tns:getProduct"/>
             <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProductResponse" message="tns:getProductResponse"/>
             <fault message="tns:BadProductId" name="BadProductId" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/getProduct/Fault/BadProductId"/>
-        </operation>
-        <operation name="searchProducts">
-            <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProductsRequest" message="tns:searchProducts"/>
-            <output wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProductsResponse" message="tns:searchProductsResponse"/>
-            <fault message="tns:BadText" name="BadText" wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/searchProducts/Fault/BadText"/>
         </operation>
         <operation name="createProduct">
             <input wsam:Action="http://ws.wharehouse.magazyn.org/Supplier/createProductRequest" message="tns:createProduct"/>
@@ -348,15 +289,7 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
                 <soap:fault name="InsufficientQuantity" use="literal"/>
             </fault>
         </operation>
-        <operation name="listPurchases">
-            <soap:operation soapAction=""/>
-            <input>
-                <soap:body use="literal"/>
-            </input>
-            <output>
-                <soap:body use="literal"/>
-            </output>
-        </operation>
+        
         <operation name="getProduct">
             <soap:operation soapAction=""/>
             <input>
@@ -367,18 +300,6 @@ wsdl:service, wsdl:portType, wsdl:types and wsdl:binding below
             </output>
             <fault name="BadProductId">
                 <soap:fault name="BadProductId" use="literal"/>
-            </fault>
-        </operation>
-        <operation name="searchProducts">
-            <soap:operation soapAction=""/>
-            <input>
-                <soap:body use="literal"/>
-            </input>
-            <output>
-                <soap:body use="literal"/>
-            </output>
-            <fault name="BadText">
-                <soap:fault name="BadText" use="literal"/>
             </fault>
         </operation>
         <operation name="createProduct">

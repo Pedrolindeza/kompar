@@ -41,7 +41,7 @@ public class SupplierClient implements SupplierPortType {
 	public boolean isVerbose() {
 		return verbose;
 	}
-
+ 
 	public void setVerbose(boolean verbose) {
 		this.verbose = verbose;
 	}
@@ -105,13 +105,9 @@ public class SupplierClient implements SupplierPortType {
 	}
 
 	@Override
-	public List<ProductView> searchProducts(String descText) throws BadText_Exception {
-		return port.searchProducts(descText);
-	}
-
-	@Override
 	public String buyProduct(String productId, int quantity)
 			throws BadProductId_Exception, BadQuantity_Exception, InsufficientQuantity_Exception {
+		System.out.println("Buying " + productId + " times " + quantity);
 		return port.buyProduct(productId, quantity);
 	}
 
@@ -133,11 +129,6 @@ public class SupplierClient implements SupplierPortType {
 	@Override
 	public List<ProductView> listProducts() {
 		return port.listProducts();
-	}
-
-	@Override
-	public List<PurchaseView> listPurchases() {
-		return port.listPurchases();
 	}
 
 }

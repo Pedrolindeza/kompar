@@ -12,7 +12,7 @@ public class BaseIT {
 	private static final String TEST_PROP_FILE = "/test.properties";
 	protected static Properties testProps;
 
-	protected static SupplierClient client;
+	protected static SupplierClient store;
 
 	@BeforeClass
 	public static void oneTimeSetup() throws Exception {
@@ -28,8 +28,8 @@ public class BaseIT {
 		}
 
 		String wsURL = testProps.getProperty("ws.url");
-		client = new SupplierClient(wsURL);
-		client.setVerbose(true);
+		store = new SupplierClient(wsURL);
+		store.setVerbose(true);
 	}
 
 	@AfterClass
